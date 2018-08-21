@@ -40,3 +40,10 @@ ws.get('/start/authenticate', function (req, res) {
         res.json({ success: false, name: null, path: null })
     }
 })
+
+/** AUTHENTICATED ROUTES **/
+
+//  Serve Navigator Application
+ws.get('/navigator', function (req, res) {
+    res.sendFile(__dirname + conf.apps + '/navigator.html')
+})

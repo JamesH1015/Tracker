@@ -23,6 +23,24 @@ input:focus, button:focus {
   border-color: springgreen !important;
 }
 
+.nav-sidebar {
+  position: fixed;
+  top: 58px;
+  bottom: 28px;
+  left: 0;
+  z-index: 1000;
+  padding: 0 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background-color: #D6D8DB;
+  border-right: 1px solid #B6B6B6;
+}
+
+.list-group > .list-group-item {
+  border-radius: 0;
+  outline: none !important;
+}
+
 footer {
   z-index: 1;
   height: 28px;
