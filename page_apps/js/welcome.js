@@ -8,6 +8,7 @@ $(document).ready( function () {
 /** Create Page Components **/
     let Start = Object.create(SignInForm)
     let Message = Object.create(ModalMessage)
+    let Menu = Object.create(NavigationBar)
 
 /** Data Model Functions **/
 
@@ -37,5 +38,9 @@ $(document).ready( function () {
     Message.initialize({
         modal: '#modal-message',
         text: '#modal-message-text'
+    })
+
+    Menu.initialize({
+        navLinks: '.navbar-brand, .nav-link'
     })
 })

@@ -40,3 +40,18 @@ let ModalMessage = {
         $(this.modal).modal()
     }
 }
+
+let NavigationBar = {
+
+    initialize: function (props) {
+        this.navLinks = props.navLinks
+
+        $(this.navLinks).click( (event) => {
+            event.preventDefault();
+            let href = $(event.target).attr('href');
+            if (href.indexOf('#') == 0) {
+              $(href).modal();
+            }
+        })
+    }
+}
