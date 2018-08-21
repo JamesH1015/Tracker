@@ -28,6 +28,17 @@ $(document).ready( function () {
         })
     }
 
+//  Retrieve projects items from web server
+    ProjectItems.retrieve = function (projectID) {
+        let query = { find: { proj_ID: projectID }, sort: null }
+        let path = '/navigator/parts'
+        Utilities.queryServer(query, path, function (result) {
+            console.log(result)
+        }, function () {
+            Message.display('ERROR: Project Items AJAX request failed!')
+        })
+    }
+
 /** Initialize Page Components **/
     Projects.initialize({
         selector: '#select-project'

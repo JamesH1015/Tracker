@@ -5,6 +5,7 @@
 
 let Dispatch = function (request) {
     ProjectsList.action(request)
+    ProjectItems.action(request)
     UserProfile.action(request)
 }
 
@@ -23,6 +24,20 @@ let ProjectsList = {
 
     store: function (ajaxList) {
         this.list = ajaxList
+    }
+}
+
+let ProjectItems = {
+
+    ancestors: {}, rootItem: '',
+
+    action: function (request) {
+        switch (request.action) {
+        
+        case 'RETRIEVE_PROJECT_ITEMS':
+            this.retrieve(request.message)
+            break
+        }
     }
 }
 
