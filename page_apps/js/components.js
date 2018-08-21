@@ -21,6 +21,17 @@ let ProjectSelector = {
                 + `${item['proj_TAG']} ${item['cust_TAG']}</option>`
             $(this.selector).append(html)
         }
+        this.activate()
+    },
+
+    activate: function () {
+        $(this.selector).change( () => {
+            let projID = $(`${this.selector} option:selected`).attr('value')
+            Dispatch({
+                action: 'RETRIEVE_PROJECT_ITEMS',
+                message: projID
+            })
+        })
     }
 }
 

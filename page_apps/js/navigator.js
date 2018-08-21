@@ -17,7 +17,12 @@ $(document).ready( function () {
         let query = { find: null, sort: { proj_TAG: 1 } }
         let path = '/navigator/projects'
         Utilities.queryServer(query, path, function (result) {
-            Projects.render(result)
+            if (result != null) {
+                ProjectsList.store(result)
+                Projects.render(result)
+            } else {
+                Message.display('ERROR: Projects not found.')
+            }
         }, function () {
             Message.display('ERROR: Projects List AJAX request failed!')
         })

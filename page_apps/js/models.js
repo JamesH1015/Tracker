@@ -19,6 +19,10 @@ let ProjectsList = {
             this.retrieve()
             break
         }
+    },
+
+    store: function (ajaxList) {
+        this.list = ajaxList
     }
 }
 
