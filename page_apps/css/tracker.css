@@ -5,6 +5,7 @@
 
 body {
   padding-top: 58px;
+  padding-bottom: 28px;
 }
 
 img.brand {
@@ -14,4 +15,16 @@ img.brand {
 
 .jumbotron {
   background-color: rgb(202, 202, 202);
+}
+
+footer {
+  z-index: 1;
+  height: 28px;
+  padding-top: 4px;
+  padding-left: 12px;
+}
+
+.footer-text {
+  color: #D6D6D6;
+  font-size: 0.9em;
 }
