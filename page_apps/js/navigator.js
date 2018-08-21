@@ -7,6 +7,7 @@ $(document).ready( function () {
 
 /** Create Page Components **/
     let Projects = Object.create(ProjectSelector)
+    let Assemblies = Object.create(SideBarGroup)
     let Message = Object.create(ModalMessage)
     let Menu = Object.create(NavigationBar)
 
@@ -34,8 +35,16 @@ $(document).ready( function () {
         let path = '/navigator/parts'
         Utilities.queryServer(query, path, function (result) {
             ProjectItems.store(result)
-            console.log(ProjectItems.rootItem)
-            console.log(ProjectItems.ancestors)
+
+        //  Render project Node with item info
+            let rootId = ProjectItems.rootItem._id
+            let rootPartNum = ProjectItems.rootItem.part_TAG
+            let rootDesc = ProjectItems.rootItem.dscr_STR
+            Assemblies.renderRoot(rootId, rootPartNum, rootDesc)
+
+        //  Render top level assemblies
+            let nodes = ProjectItems.ancestors[rootId].nodes
+            Assemblies.renderNodes(rootId, nodes)
         }, function () {
             Message.display('ERROR: Project Items AJAX request failed!')
         })
@@ -44,6 +53,13 @@ $(document).ready( function () {
 /** Initialize Page Components **/
     Projects.initialize({
         selector: '#select-project'
+    })
+
+    Assemblies.initialize({
+        listId: '#sidebar',
+        circleIcon: 'img/circle.png',
+        closedIcon: 'img/closed.png',
+        expandIcon: 'img/expand.png'
     })
 
     Message.initialize({

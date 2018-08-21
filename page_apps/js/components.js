@@ -35,6 +35,48 @@ let ProjectSelector = {
     }
 }
 
+let SideBarGroup = {
+
+    initialize: function (props) {
+        this.listId = props.listId
+        this.circleIcon = props.circleIcon
+        this.closedIcon = props.closedIcon
+        this.expandIcon = props.expandIcon
+    },
+
+    renderRoot: function (id, name, desc) {
+        let html = `<button id="${id}" type="button"`
+            + `class="node list-group-item list-group-item-action list-group-item-secondary" data-level="0">`
+            + `<img src="${this.circleIcon}" class="float-left mt-3 mr-2">`
+            + `<div class="text-truncate">${name}`
+            + `<br>${desc}</div></button>`
+        $(this.listId).append(html)
+        $('#'+ id).click( () => {
+            Dispatch({
+                action: 'LOAD_NODE_DATA',
+                message: { id: id }
+            })
+        })
+    },
+
+    renderNodes: function (ancestor, nodes) {
+        for (let idx = nodes.length - 1; idx > -1; idx--) {
+            let html = `<button id="${nodes[idx]._id}" type="button"`
+                + `class="node list-group-item list-group-item-action list-group-item-secondary" data-level="0">`
+                + `<img src="${this.closedIcon}" class="float-left mt-3 mr-2">`
+                + `<div class="text-truncate">${nodes[idx].part_TAG}`
+                + `<br>${nodes[idx].dscr_STR}</div></button>`
+            $(html).insertAfter(`#${ancestor}`)
+            $(`#${nodes[idx]._id}`).click( () => {
+                Dispatch({
+                    action: 'LOAD_NODE_DATA',
+                    message: { id: nodes[idx]._id }
+                })
+            })
+        }
+    }
+}
+
 let SignInForm = {
 
     initialize: function (props) {
