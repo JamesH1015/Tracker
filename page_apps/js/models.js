@@ -38,6 +38,39 @@ let ProjectItems = {
             this.retrieve(request.message)
             break
         }
+    },
+
+    store: function (items) {
+        let itemsLen = items.length
+    //  Hash ancestors as keys into an object
+    //  and create 'nodes' and 'leafs' arrays for each ancestor
+        let idx = 0
+        while (idx < itemsLen) {
+            let itemAncestor = items[idx]['parent_ID']
+            if (!(itemAncestor in this.ancestors)) {
+                if ((itemAncestor != null) && (itemAncestor != '')) {
+                    this.ancestors[itemAncestor] = { nodes: [], leafs: [] }
+                } else {
+                    this.rootItem = items[idx]
+                }
+            }
+            idx++
+        }
+    //  Sort the chidlren of an ancestor into 'nodes' and 'leafs'
+    //  and push them into arrays mapped to the ancestor
+        let idy = 0
+        while (idy < itemsLen) {
+            let itemID = items[idy]['_id']
+            let itemAncestor = items[idy]['parent_ID']
+            if (itemID in this.ancestors) {
+                if ((itemAncestor != null) && (itemAncestor != '')) {
+                    this.ancestors[itemAncestor].nodes.push(items[idy])
+                }
+            } else{
+                this.ancestors[itemAncestor].leafs.push(items[idy])
+            }
+            idy++
+        }
     }
 }
 

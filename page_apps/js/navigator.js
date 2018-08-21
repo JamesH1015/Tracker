@@ -33,7 +33,9 @@ $(document).ready( function () {
         let query = { find: { proj_ID: projectID }, sort: null }
         let path = '/navigator/parts'
         Utilities.queryServer(query, path, function (result) {
-            console.log(result)
+            ProjectItems.store(result)
+            console.log(ProjectItems.rootItem)
+            console.log(ProjectItems.ancestors)
         }, function () {
             Message.display('ERROR: Project Items AJAX request failed!')
         })
