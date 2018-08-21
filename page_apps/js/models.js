@@ -16,5 +16,17 @@ let UserProfile = {
             this.authenticateUser(request.message)
             break
         }
+    },
+    
+    queryServer: function (cred, path, response) {
+        let ajaxOBJ = {
+            method: 'GET', url: path,
+            data: { username: cred.username, password: cred.password },
+            dataType: 'json'
+        }
+        $.ajax(ajaxOBJ).done( (result) => { response(result) })
+         .fail( () => {
+             console.log('Sign In Form AJAX request failed.')
+        })
     }
 }

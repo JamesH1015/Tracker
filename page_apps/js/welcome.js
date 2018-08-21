@@ -19,7 +19,10 @@ $(document).ready( function () {
             console.log('Missing information. Enter password.')
         }
         else {
-            console.log(credentials)
+            this.queryServer(credentials, '/start/authenticate',
+            function (result) {
+                console.log(result)
+            })
         }
     }
 
