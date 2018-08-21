@@ -7,16 +7,17 @@ $(document).ready( function () {
 
 /** Create Page Components **/
     let Start = Object.create(SignInForm)
+    let Message = Object.create(ModalMessage)
 
 /** Data Model Functions **/
 
 //  Authenticate user credentials
     UserProfile.authenticateUser = function (credentials) {
         if (credentials.username == '') {
-            console.log('Missing information. Enter username.')
+            Message.display('Missing information. Enter username.')
         }
         else if (credentials.password == '') {
-            console.log('Missing information. Enter password.')
+            Message.display('Missing information. Enter password.')
         }
         else {
             this.queryServer(credentials, '/start/authenticate',
@@ -31,5 +32,10 @@ $(document).ready( function () {
         usernameInput: '#inp-username',
         passwordInput: '#inp-password',
         signinButton: '#btn-start'
+    })
+
+    Message.initialize({
+        modal: '#modal-message',
+        text: '#modal-message-text'
     })
 })

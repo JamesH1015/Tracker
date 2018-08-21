@@ -27,3 +27,16 @@ let SignInForm = {
         })
     }
 }
+
+let ModalMessage = {
+
+    initialize: function (props) {
+        this.modal = props.modal
+        this.text = props.text
+    },
+
+    display: function (message) {
+        $(this.text).html(message)
+        $(this.modal).modal()
+    }
+}
