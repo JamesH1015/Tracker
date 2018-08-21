@@ -1,5 +1,9 @@
 {
   "name": "Tracker",
   "port": 8080,
-  "apps": "/page_apps"
+  "apps": "/page_apps",
+  "mongo": {
+    "path": "mongodb://127.0.0.1:27017/",
+    "database": "tracker"
+  }
 }

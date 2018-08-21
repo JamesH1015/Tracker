@@ -11,6 +11,12 @@
 //  Application Configuration Settings
     const conf = require('./config')
 
+//  Load Databse Module
+    const db = require('./database')
+
+//  Initialize Database Module
+    db.initialize(conf.mongo.path, conf.mongo.database)
+
 //  Create Express Application
     const ws = express()
 
@@ -47,3 +53,16 @@ ws.get('/start/authenticate', function (req, res) {
 ws.get('/navigator', function (req, res) {
     res.sendFile(__dirname + conf.apps + '/navigator.html')
 })
+
+//  GET Resource
+    ws.get('/:appl/:coll', function (req, res) {
+        let api = {
+            appl: req.params.appl,
+            coll: req.params.coll,
+            find: req.query.find,
+            sort: req.query.sort,
+            user: req.user
+        }
+        db.get(api).then( (results) => {  res.json(results) })
+          .catch( (err) => { res.send(err) })
+    })
