@@ -37,21 +37,21 @@
 /** AUTHENTICATION **/
 
 //  Authenticate User
-ws.get('/start/authenticate', function (req, res) {
-    username = req.query.username
-    password = req.query.password
-    if ((username == 'REIuser') && (password == 'qwerty')) {
-        res.json({ success: true, name: username, path: '/navigator' })
-    } else {
-        res.json({ success: false, name: null, path: null })
-    }
-})
+    ws.get('/start/authenticate', function (req, res) {
+        username = req.query.username
+        password = req.query.password
+        if ((username == 'REIuser') && (password == 'qwerty')) {
+            res.json({ success: true, name: username, path: '/navigator' })
+        } else {
+            res.json({ success: false, name: null, path: null })
+        }
+    })
 
 /** AUTHENTICATED ROUTES **/
 
 //  Serve Navigator Application
-ws.get('/navigator', function (req, res) {
-    res.sendFile(__dirname + conf.apps + '/navigator.html')
+    ws.get('/navigator', function (req, res) {
+        res.sendFile(__dirname + conf.apps + '/navigator.html')
 })
 
 //  GET Resource
