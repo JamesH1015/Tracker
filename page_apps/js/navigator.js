@@ -18,6 +18,8 @@ $(document).ready( function () {
         let path = '/navigator/projects'
         Utilities.queryServer(query, path, function (result) {
             Projects.render(result)
+        }, function () {
+            Message.display('ERROR: Projects List AJAX request failed!')
         })
     }
 

@@ -21,9 +21,10 @@ $(document).ready( function () {
             Message.display('Missing information. Enter password.')
         }
         else {
-            this.queryServer(credentials, '/start/authenticate',
-            function (result) {
-                console.log(result)
+            Utilities.queryServer(credentials, '/start/authenticate',
+            function (result) { console.log(result) },
+            function () {
+                Message.display('ERROR: User Profile AJAX request failed!')
             })
         }
     }
