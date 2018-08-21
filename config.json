@@ -1,0 +1,5 @@
+{
+  "name": "Tracker",
+  "port": 8080,
+  "apps": "/page_apps"
+}
