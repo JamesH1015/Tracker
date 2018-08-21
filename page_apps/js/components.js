@@ -3,6 +3,26 @@
  *  Copyright 2018 James Houck, REI Automation, Inc. All rights reserved.
  */
 
+let ProjectSelector = {
+    initialize: function (props) {
+        this.selector = props.selector
+
+        Dispatch({
+            action: 'RETRIEVE_PROJECTS_LIST',
+            message: null
+        })
+    },
+
+    render: function (list) {
+        for (let idx = 0; idx < list.length; idx++) {
+            let item = list[idx]
+            let html = `<option value="${item['_id']}">`
+                + `${item['proj_TAG']} ${item['cust_TAG']}</option>`
+            $(this.selector).append(html)
+        }
+    }
+}
+
 let SignInForm = {
 
     initialize: function (props) {
