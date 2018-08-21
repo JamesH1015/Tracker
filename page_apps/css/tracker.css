@@ -17,6 +17,12 @@ img.brand {
   background-color: rgb(202, 202, 202);
 }
 
+input:focus, button:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: springgreen !important;
+}
+
 footer {
   z-index: 1;
   height: 28px;
