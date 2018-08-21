@@ -23,5 +23,8 @@
   "bugs": {
     "url": "https://github.com/JamesH1015/Tracker/issues"
   },
-  "homepage": "https://github.com/JamesH1015/Tracker#readme"
+  "homepage": "https://github.com/JamesH1015/Tracker#readme",
+  "dependencies": {
+    "express": "~4.16.3"
+  }
 }
