@@ -3,6 +3,15 @@
  *  Copyright 2018 James Houck, REI Automation, Inc. All rights reserved.
  */
 
+body {
+  padding-top: 58px;
+}
+
+img.brand {
+  width: 30px;
+  height: 30px;
+}
+
 .jumbotron {
   background-color: rgb(202, 202, 202);
 }
