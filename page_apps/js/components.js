@@ -4,6 +4,7 @@
  */
 
 let ProjectSelector = {
+
     initialize: function (props) {
         this.selector = props.selector
 
@@ -70,7 +71,7 @@ let NavigationBar = {
             event.preventDefault();
             let href = $(event.target).attr('href');
             if (href.indexOf('#') == 0) {
-              $(href).modal();
+                $(href).modal();
             }
         })
     }

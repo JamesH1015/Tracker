@@ -27,11 +27,11 @@ $(document).ready( function () {
     })
 
     Message.initialize({
-      modal: '#modal-message',
-      text: '#modal-message-text'
+        modal: '#modal-message',
+        text: '#modal-message-text'
     })
 
     Menu.initialize({
-      navLinks: '.navbar-brand, .nav-link'
+        navLinks: '.navbar-brand, .nav-link'
     })
 })
