@@ -77,6 +77,84 @@ let SideBarGroup = {
     }
 }
 
+let DataGrid = {
+
+    initialize: function (props) {
+        this.headId = props.headId
+        this.bodyId = props.bodyId
+    },
+
+    renderHead: function (view) {
+        $(this.headId).empty()
+
+    //  Create row
+        let frag = document.createDocumentFragment()
+        let row = document.createElement('div')
+        row.className = 'row grid-header-bg pt-2'
+
+    //  Create columns
+        for (let idx = 0; idx < view.length; idx++) {
+            let col = document.createElement('div')
+            col.className = `col-${view[idx].width}`
+            let elm = document.createElement('h6')
+            elm.textContent = view[idx].title
+            col.appendChild(elm)
+            row.appendChild(col)
+        }
+        frag.appendChild(row)
+        $(this.headId).append(frag)
+    },
+
+    renderBody: function (view, data) {
+        $(this.bodyId).empty()
+
+    //  Create fragment
+        let frag = document.createDocumentFragment()
+        for (let idx = 0; idx < data.length; idx++) {
+        
+        //  Create row
+            let row = document.createElement('div')
+            row.id = data[idx]['_id']
+            row.className = 'row grid-row border border-top-0'
+    
+        //  Create row columns
+            for (let idy = 0; idy < view.length; idy++) {
+                let col = document.createElement('div')
+                let colAttr = view[idy]
+                col.className = `col-${colAttr.width} data`
+                col.setAttribute('data-field', colAttr.field)
+                col.setAttribute('data-type', colAttr.dtype)
+                col.contentEditable = colAttr.edit
+                let datum = data[idx][colAttr.field]
+                let text = this.formatData(datum, colAttr.dtype)
+                col.textContent = text
+                row.appendChild(col)
+            }
+            frag.appendChild(row)
+        }
+        $(this.bodyId).append(frag)
+    },
+
+    formatData: function (data, type) {
+        if (data != undefined) {
+            switch (type) {
+            case 'string':
+                return data.trim()
+            case 'number':
+                return data.toLocaleString('en-US')
+            case 'currency':
+                return data.toLocaleString('en-US')
+            case 'date':
+                let ts = new Date(data)
+                let month = (ts.getMonth( ) + 1).toString( )
+                let date = (ts.getDate( )).toString( )
+                let year = (ts.getFullYear( )).toString( )
+                return dateSTR = month + '-' + date + '-' + year
+            }
+        } else { return '' }
+    }
+}
+
 let SignInForm = {
 
     initialize: function (props) {

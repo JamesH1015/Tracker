@@ -52,3 +52,26 @@ footer {
   color: #D6D6D6;
   font-size: 0.9em;
 }
+
+.grid-header {
+  top: 58px;
+  z-index: 1;
+}
+
+.grid-header-bg {
+  border-top: 1px solid #B6B6B6;
+  border-bottom: 1px solid #B6B6B6;
+  background-color: #D6D8DB;
+}
+
+.grid-body {
+  padding-bottom: 28px;
+}
+
+.grid-row:nth-child(even) {background: #E6E6E6;; }
+.grid-row:nth-child(odd) {background: #F6F6F6; }
+
+.data {
+  word-break: break-word;
+  font-size: 14px;
+}

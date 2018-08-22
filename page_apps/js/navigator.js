@@ -8,10 +8,30 @@ $(document).ready( function () {
 /** Create Page Components **/
     let Projects = Object.create(ProjectSelector)
     let Assemblies = Object.create(SideBarGroup)
+    let Parts = Object.create(DataGrid)
     let Message = Object.create(ModalMessage)
     let Menu = Object.create(NavigationBar)
 
 /** Data Model Functions **/
+
+    let view = [
+        { "title": "Part Num", "width": "2", "field": "part_TAG",
+            "dtype": "string", "edit": true },
+        { "title": "Description", "width": "3", "field": "dscr_STR",
+            "dtype": "string", "edit": true },
+        { "title": "Mfr", "width": "1", "field": "mfr_STR",
+            "dtype": "string", "edit": true },
+        { "title": "Unit Qty", "width": "1", "field": "unit_QTY",
+            "dtype": "number", "edit": true },
+        { "title": "Total Qty", "width": "1", "field": "total_QTY",
+            "dtype": "number", "edit": true },
+        { "title": "Vendor", "width": "1", "field": "vendor_STR",
+            "dtype": "string", "edit": true },
+        { "title": "Note", "width": "2", "field": "note_STR",
+            "dtype": "string", "edit": true },
+        { "title": "Status", "width": "1", "field": "status_STR",
+            "dtype": "string", "edit": true }
+    ]
 
 //  Retrieve projects list from web server
     ProjectsList.retrieve = function () {
@@ -45,6 +65,12 @@ $(document).ready( function () {
         //  Render top level assemblies
             let nodes = ProjectItems.ancestors[rootId].nodes
             Assemblies.renderNodes(rootId, nodes)
+
+        //  Render parts grid
+            let leafs = ProjectItems.ancestors[rootId].leafs
+            Parts.renderHead(view)
+            Parts.renderBody(view, leafs)
+
         }, function () {
             Message.display('ERROR: Project Items AJAX request failed!')
         })
@@ -60,6 +86,11 @@ $(document).ready( function () {
         circleIcon: 'img/circle.png',
         closedIcon: 'img/closed.png',
         expandIcon: 'img/expand.png'
+    })
+
+    Parts.initialize({
+        headId: '#grid-header',
+        bodyId: '#grid-body'
     })
 
     Message.initialize({
