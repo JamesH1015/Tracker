@@ -62,9 +62,11 @@ $(document).ready( function () {
             let rootDesc = ProjectItems.rootItem.dscr_STR
             Assemblies.renderRoot(rootId, rootPartNum, rootDesc)
 
-        //  Render top level assemblies
+        //  Update top level assemblies state and level and render them
             let nodes = ProjectItems.ancestors[rootId].nodes
-            Assemblies.renderNodes(rootId, nodes)
+            let level = 1
+            ProjectItems.updateState(nodes, 'closed', level)
+            Assemblies.renderNodes(rootId, nodes, level)
 
         //  Render parts grid
             let leafs = ProjectItems.ancestors[rootId].leafs
@@ -74,6 +76,20 @@ $(document).ready( function () {
         }, function () {
             Message.display('ERROR: Project Items AJAX request failed!')
         })
+    }
+
+//  Display node data
+    ProjectItems.display = function (nodeID) {
+
+    //  Change node state
+        ProjectItems.updateState(nodeID, 'open')
+        Assemblies.toggleState(nodeID, 'open')
+
+    //  Update subnodes state and level and render them
+        let nodes = ProjectItems.ancestors[nodeID].nodes
+        let level = ProjectItems.ancestors[nodeID].level + 1
+        ProjectItems.updateState(nodes, 'closed', level)
+        Assemblies.renderNodes(nodeID, nodes, level)
     }
 
 /** Initialize Page Components **/

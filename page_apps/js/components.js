@@ -53,26 +53,43 @@ let SideBarGroup = {
         $(this.listId).append(html)
         $('#'+ id).click( () => {
             Dispatch({
-                action: 'LOAD_NODE_DATA',
-                message: { id: id }
+                action: 'DISPLAY_NODE_DATA',
+                message: id
             })
         })
     },
 
-    renderNodes: function (ancestor, nodes) {
+    renderNodes: function (ancestor, nodes, level) {
         for (let idx = nodes.length - 1; idx > -1; idx--) {
+
+        //  Insert node
             let html = `<button id="${nodes[idx]._id}" type="button"`
                 + `class="node list-group-item list-group-item-action list-group-item-secondary" data-level="0">`
                 + `<img src="${this.closedIcon}" class="float-left mt-3 mr-2">`
                 + `<div class="text-truncate">${nodes[idx].part_TAG}`
                 + `<br>${nodes[idx].dscr_STR}</div></button>`
             $(html).insertAfter(`#${ancestor}`)
+
+        //  Insert level icons
+            for (let idy = 0; idy < level - 1; idy++) {
+                let html = `<img src="${this.closedIcon}"`
+                    + `class="float-left mt-3">`
+                $(`#${nodes[idx]._id} img:first`).before(html)
+            }
+
+        //  Activate nodes
             $(`#${nodes[idx]._id}`).click( () => {
                 Dispatch({
-                    action: 'LOAD_NODE_DATA',
-                    message: { id: nodes[idx]._id }
+                    action: 'DISPLAY_NODE_DATA',
+                    message: nodes[idx]._id
                 })
             })
+        }
+    },
+
+    toggleState: function (node, state) {
+        if (state == 'open') {
+            $(`#${node} img`).attr('src', this.expandIcon)
         }
     }
 }

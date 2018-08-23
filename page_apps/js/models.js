@@ -37,6 +37,10 @@ let ProjectItems = {
         case 'RETRIEVE_PROJECT_ITEMS':
             this.retrieve(request.message)
             break
+
+        case 'DISPLAY_NODE_DATA':
+            this.display(request.message)
+            break
         }
     },
 
@@ -49,7 +53,9 @@ let ProjectItems = {
             let itemAncestor = items[idx]['parent_ID']
             if (!(itemAncestor in this.ancestors)) {
                 if ((itemAncestor != null) && (itemAncestor != '')) {
-                    this.ancestors[itemAncestor] = { nodes: [], leafs: [] }
+                    this.ancestors[itemAncestor] = {
+                        nodes: [], leafs: [], state: null, level: null
+                    }
                 } else {
                     this.rootItem = items[idx]
                 }
@@ -70,6 +76,23 @@ let ProjectItems = {
                 this.ancestors[itemAncestor].leafs.push(items[idy])
             }
             idy++
+        }
+    },
+
+    updateState: function (nodes, state, level) {
+        if (typeof nodes === 'object') {
+            for (let idx = 0; idx < nodes.length; idx++) {
+                this.ancestors[nodes[idx]['_id']].state = state
+                if (typeof level !== 'undefined') {
+                    this.ancestors[nodes[idx]['_id']].level = level
+                }
+            }
+        }
+        else {
+            this.ancestors[nodes].state = state
+            if (typeof level !== 'undefined') {
+                this.ancestors[nodes].level = level
+            }
         }
     }
 }
