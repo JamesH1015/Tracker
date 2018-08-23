@@ -65,7 +65,7 @@ $(document).ready( function () {
         //  Update top level assemblies state and level and render them
             let nodes = ProjectItems.ancestors[rootId].nodes
             let level = 1
-            ProjectItems.updateState(nodes, 'closed', level)
+            ProjectItems.updateState(rootId, nodes, 'closed', level)
             Assemblies.renderNodes(rootId, nodes, level)
 
         //  Render parts grid
@@ -80,16 +80,30 @@ $(document).ready( function () {
 
 //  Display node data
     ProjectItems.display = function (nodeID) {
+        nodeState = this.sideNodes[nodeID].state
+        if (nodeState == 'closed') {
+        //  Change node state to open
+            this.sideNodes[nodeID].state = 'open'
+            Assemblies.toggleState(nodeID, 'open')
 
-    //  Change node state
-        ProjectItems.updateState(nodeID, 'open')
-        Assemblies.toggleState(nodeID, 'open')
+        //  Update subnodes state and level and render them
+            let nodes = this.ancestors[nodeID].nodes
+            let level = this.sideNodes[nodeID].level + 1
+            this.updateState(nodeID, nodes, 'closed', level)
+            Assemblies.renderNodes(nodeID, nodes, level)
+        } else {
+        //  Change node state to close
+            this.sideNodes[nodeID].state = 'closed'
+            Assemblies.toggleState(nodeID, 'closed')
 
-    //  Update subnodes state and level and render them
-        let nodes = ProjectItems.ancestors[nodeID].nodes
-        let level = ProjectItems.ancestors[nodeID].level + 1
-        ProjectItems.updateState(nodes, 'closed', level)
-        Assemblies.renderNodes(nodeID, nodes, level)
+        //  Update subnodes state and level and remove them
+            for (node in this.sideNodes) {
+                if (this.sideNodes[node].parents.includes(nodeID)) {
+                    this.sideNodes[node].state = 'closed'
+                    Assemblies.removeNode(node)
+                }
+            }
+        }
     }
 
 /** Initialize Page Components **/

@@ -87,9 +87,16 @@ let SideBarGroup = {
         }
     },
 
+    removeNode: function (node) {
+        $(`#${node}`).remove()
+    },
+
     toggleState: function (node, state) {
         if (state == 'open') {
             $(`#${node} img`).attr('src', this.expandIcon)
+        }
+        if (state == 'closed') {
+            $(`#${node} img`).attr('src', this.closedIcon)
         }
     }
 }

@@ -29,7 +29,7 @@ let ProjectsList = {
 
 let ProjectItems = {
 
-    ancestors: {}, rootItem: '',
+    ancestors: {}, rootItem: '', sideNodes: {},
 
     action: function (request) {
         switch (request.action) {
@@ -53,8 +53,9 @@ let ProjectItems = {
             let itemAncestor = items[idx]['parent_ID']
             if (!(itemAncestor in this.ancestors)) {
                 if ((itemAncestor != null) && (itemAncestor != '')) {
-                    this.ancestors[itemAncestor] = {
-                        nodes: [], leafs: [], state: null, level: null
+                    this.ancestors[itemAncestor] = { nodes: [], leafs: [] }
+                    this.sideNodes[itemAncestor] = {
+                        state: null, level: null, parents: []
                     }
                 } else {
                     this.rootItem = items[idx]
@@ -79,20 +80,13 @@ let ProjectItems = {
         }
     },
 
-    updateState: function (nodes, state, level) {
-        if (typeof nodes === 'object') {
-            for (let idx = 0; idx < nodes.length; idx++) {
-                this.ancestors[nodes[idx]['_id']].state = state
-                if (typeof level !== 'undefined') {
-                    this.ancestors[nodes[idx]['_id']].level = level
-                }
-            }
-        }
-        else {
-            this.ancestors[nodes].state = state
-            if (typeof level !== 'undefined') {
-                this.ancestors[nodes].level = level
-            }
+    updateState: function (parent, nodes, state, level) {
+        for (let idx = 0; idx < nodes.length; idx++) {
+            let nodeID = this.sideNodes[nodes[idx]['_id']]
+            let parentsARY = nodeID.parents
+            parentsARY.push(parent)
+            this.sideNodes[nodes[idx]['_id']].state = state
+            this.sideNodes[nodes[idx]['_id']].level = level
         }
     }
 }
