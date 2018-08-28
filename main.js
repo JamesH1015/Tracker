@@ -8,6 +8,15 @@
 //  Load Express 4 Module
     const express = require('express')
 
+//  An implementation of JSON Web Tokens
+    const jwt = require('jsonwebtoken')
+
+//  Simple parsing middleware for Express
+    const bodyParser = require('body-parser')
+
+//  Cookie parsing with signatures
+    const cookieParser = require('cookie-parser')
+
 //  Application Configuration Settings
     const conf = require('./config')
 
@@ -19,6 +28,13 @@
 
 //  Create Express Application
     const ws = express()
+
+//  Parse POST and URL parameters
+    ws.use(bodyParser.json({ limit: '16mb' }))
+    ws.use(bodyParser.urlencoded({ limit: '16mb', extended: true }))
+
+//  Parse and Set cookies
+    ws.use(cookieParser())
 
 //  Serve Static Files
     ws.use(express.static(__dirname + conf.apps))
@@ -37,14 +53,47 @@
 /** AUTHENTICATION **/
 
 //  Authenticate User
-    ws.get('/start/authenticate', function (req, res) {
-        username = req.query.username
-        password = req.query.password
-        if ((username == 'REIuser') && (password == 'qwerty')) {
-            res.json({ success: true, name: username, path: '/navigator' })
-        } else {
-            res.json({ success: false, name: null, path: null })
+    ws.get('/welcome/users', function (req, res) {
+        let api = {
+            appl: 'start',
+            coll: 'users',
+            find: req.query.find,
+            sort: req.query.sort
         }
+        db.get(api)
+          .then( (results) => {
+            if (results.length == 0) { res.json({ success: false }) }
+            else if (results[0].active_BOL == true) {
+                let doc = { username: results[0].user_TAG }
+                let token = jwt.sign(doc, conf.token, { expiresIn: '6d' })
+                res.cookie('tracker', token)
+                res.json({
+                    success: true,
+                    path: '/navigator',
+                    username: results[0].user_TAG,
+                    forename: results[0].forename_STR,
+                    surname: results[0].surname_STR,
+                    group: results[0].group_STR,
+                    admin: results[0].admin_BOL
+                })
+            } else { res.json({ success: false }) }
+           })
+          .catch( (err) => { res.send(err) })
+
+    })
+
+//  Middleware to Verify Token
+    ws.use( function (req, res, next) {
+        let token = req.cookies.tracker
+        if (token) {
+            jwt.verify(token, conf.token, (err, decoded) => {
+                if (err) { return res.redirect('/') }
+                else {
+                    req.user = decoded
+                    next()
+                }
+            })
+        } else { return res.redirect('/') }
     })
 
 /** AUTHENTICATED ROUTES **/

@@ -21,11 +21,25 @@ $(document).ready( function () {
             Message.display('Missing information. Enter password.')
         }
         else {
-            Utilities.queryServer(credentials, '/start/authenticate',
-            function (result) { console.log(result) },
+            let query = { find: {
+                    user_TAG: credentials.username,
+                    auth_STR: credentials.password
+                }, sort: null
+            }
+            Utilities.queryServer(query, '/welcome/users',
+            function (result) { UserProfile.requestPage(result) },
             function () {
                 Message.display('ERROR: User Profile AJAX request failed!')
             })
+        }
+    }
+
+//  Request page for authenticated user
+    UserProfile.requestPage = function (result) {
+        if (result.success) {
+            window.open(result.path, '_self')
+        } else {
+            Message.display('ERROR: Server failed to authenticate user.')
         }
     }
 
