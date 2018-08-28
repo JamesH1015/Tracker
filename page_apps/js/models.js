@@ -6,6 +6,8 @@
 let Dispatch = function (request) {
     ProjectsList.action(request)
     ProjectItems.action(request)
+    SideBar.action(request)
+    Grid.action(request)
     UserProfile.action(request)
 }
 
@@ -16,8 +18,8 @@ let ProjectsList = {
     action: function (request) {
         switch (request.action) {
         
-        case 'RETRIEVE_PROJECTS_LIST':
-            this.retrieve()
+        case 'QUERY_PROJECTS_LIST':
+            this.query()
             break
         }
     },
@@ -29,18 +31,17 @@ let ProjectsList = {
 
 let ProjectItems = {
 
-    ancestors: {}, rootItem: '', sideNodes: {},
+    ancestors: {}, rootItem: '',
 
     action: function (request) {
         switch (request.action) {
         
-        case 'RETRIEVE_PROJECT_ITEMS':
-            this.retrieve(request.message)
+        case 'QUERY_PROJECT_DATA':
+            this.query(request.message)
             break
-
-        case 'DISPLAY_NODE_DATA':
-            this.display(request.message)
-            break
+        
+        case 'RETRIEVE_PROJECT_DATA_BY_ANCESTOR':
+            return this.retrieve(request.message)
         }
     },
 
@@ -54,9 +55,6 @@ let ProjectItems = {
             if (!(itemAncestor in this.ancestors)) {
                 if ((itemAncestor != null) && (itemAncestor != '')) {
                     this.ancestors[itemAncestor] = { nodes: [], leafs: [] }
-                    this.sideNodes[itemAncestor] = {
-                        state: null, level: null, parents: []
-                    }
                 } else {
                     this.rootItem = items[idx]
                 }
@@ -80,13 +78,60 @@ let ProjectItems = {
         }
     },
 
-    updateState: function (parent, nodes, state, level) {
+    retrieve: function (param) {
+        return this.ancestors[param.id][param.type]
+    }
+}
+
+let SideBar = {
+
+    nodes: {}, recent: [], previous: { node: '', level: null },
+
+    action: function (request) {
+        switch (request.action) {
+
+        case 'INITIALIZE_SIDEBAR':
+            this.initialize(request.message)
+            break
+        
+        case 'DISPLAY_SELECTED_NODE_DATA':
+            this.displaySelected(request.message)
+            break
+        }
+    },
+
+    store: function (nodeList) {
+        for (let idx = 0; idx < nodeList.length; idx++) {
+            this.nodes[nodeList[idx]] = {
+                state: null, level: null, parents: []
+            }
+        }
+    },
+
+    updateState: function (subnodes, state, level) {
+        for (let idx = 0; idx < subnodes.length; idx++) {
+            let nodeID = subnodes[idx]['_id']
+            this.nodes[nodeID].state = state
+            this.nodes[nodeID].level = level
+        }
+    },
+
+    updateRecent: function (nodeID, nodes, level) {
+        this.recent[level] = { id: nodeID, nodes: [] }
         for (let idx = 0; idx < nodes.length; idx++) {
-            let nodeID = this.sideNodes[nodes[idx]['_id']]
-            let parentsARY = nodeID.parents
-            parentsARY.push(parent)
-            this.sideNodes[nodes[idx]['_id']].state = state
-            this.sideNodes[nodes[idx]['_id']].level = level
+            this.recent[level].nodes.push(nodes[idx]._id)
+        }
+    }
+}
+
+let Grid = {
+
+    action: function (request) {
+        switch (request.action) {
+
+        case 'DISPLAY_GRID_ITEMS':
+            this.display(request.message)
+            break
         }
     }
 }

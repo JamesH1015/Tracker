@@ -34,7 +34,7 @@ $(document).ready( function () {
     ]
 
 //  Retrieve projects list from web server
-    ProjectsList.retrieve = function () {
+    ProjectsList.query = function () {
         let query = { find: null, sort: { proj_TAG: 1 } }
         let path = '/navigator/projects'
         Utilities.queryServer(query, path, function (result) {
@@ -50,60 +50,133 @@ $(document).ready( function () {
     }
 
 //  Retrieve projects items from web server
-    ProjectItems.retrieve = function (projectID) {
+    ProjectItems.query = function (projectID) {
         let query = { find: { proj_ID: projectID }, sort: null }
         let path = '/navigator/parts'
         Utilities.queryServer(query, path, function (result) {
+        
+        //  Store project data
             ProjectItems.store(result)
 
-        //  Render project Node with item info
-            let rootId = ProjectItems.rootItem._id
-            let rootPartNum = ProjectItems.rootItem.part_TAG
-            let rootDesc = ProjectItems.rootItem.dscr_STR
-            Assemblies.renderRoot(rootId, rootPartNum, rootDesc)
+        //  Initial sidebar data
+            let nodeList = []
+            for (node in ProjectItems.ancestors) {
+                nodeList.push(node)
+            }
+            let rootID = ProjectItems.rootItem._id
+            let sideBarData = {
+                nodes: nodeList,
+                root: {
+                    id: rootID,
+                    partNum: ProjectItems.rootItem.part_TAG,
+                    desc: ProjectItems.rootItem.dscr_STR,
+                    nodes: ProjectItems.ancestors[rootID].nodes
+                }
+            }
+            SideBar.action({
+                action: 'INITIALIZE_SIDEBAR',
+                message: sideBarData
+            })
 
-        //  Update top level assemblies state and level and render them
-            let nodes = ProjectItems.ancestors[rootId].nodes
-            let level = 1
-            ProjectItems.updateState(rootId, nodes, 'closed', level)
-            Assemblies.renderNodes(rootId, nodes, level)
-
-        //  Render parts grid
-            let leafs = ProjectItems.ancestors[rootId].leafs
-            Parts.renderHead(view)
-            Parts.renderBody(view, leafs)
+        //  Initial parts grid data
+            Grid.action({
+                action: 'DISPLAY_GRID_ITEMS',
+                message: ProjectItems.ancestors[rootID].leafs
+            })
 
         }, function () {
             Message.display('ERROR: Project Items AJAX request failed!')
         })
     }
 
-//  Display node data
-    ProjectItems.display = function (nodeID) {
-        nodeState = this.sideNodes[nodeID].state
-        if (nodeState == 'closed') {
-        //  Change node state to open
-            this.sideNodes[nodeID].state = 'open'
-            Assemblies.toggleState(nodeID, 'open')
+//  Initialze sidebar
+    SideBar.initialize = function (data) {
+
+    //  Initialize sidebar store
+        this.store(data.nodes)
+
+    //  Render root node with item info
+        let root = data.root
+        this.previous.node = root.id
+        this.previous.level = 0
+        this.nodes[root.id].state = 'open'
+        this.nodes[root.id].level = 0
+        Assemblies.renderRoot(root.id, root.partNum, root.desc)
+        Assemblies.highlightNode(root.id, 'on')
+
+    //  Display top level assemblies
+        let level = 1
+        this.updateState(root.nodes, 'closed', level)
+        this.updateRecent(root.id, root.nodes, 0)
+        Assemblies.renderNodes(root.id, root.nodes, level)
+    }
+
+//  Display subnodes and items of selected node
+    SideBar.displaySelected = function (nodeID) {
+        let level = this.nodes[nodeID].level
+
+    //  Display selected node part data
+        let leafs = ProjectItems.action({
+            action: 'RETRIEVE_PROJECT_DATA_BY_ANCESTOR',
+            message: { id: nodeID, type: 'leafs' }
+        })
+
+        Grid.action({
+            action: 'DISPLAY_GRID_ITEMS',
+            message: leafs
+        })
+
+    //  Open subnodes if not already open
+        if (this.nodes[nodeID].state == 'closed') {
 
         //  Update subnodes state and level and render them
-            let nodes = this.ancestors[nodeID].nodes
-            let level = this.sideNodes[nodeID].level + 1
-            this.updateState(nodeID, nodes, 'closed', level)
-            Assemblies.renderNodes(nodeID, nodes, level)
-        } else {
-        //  Change node state to close
-            this.sideNodes[nodeID].state = 'closed'
-            Assemblies.toggleState(nodeID, 'closed')
+            let nodes = ProjectItems.action({
+                action: 'RETRIEVE_PROJECT_DATA_BY_ANCESTOR',
+                message: { id: nodeID, type: 'nodes' }
+            })
+            let sublevel = this.nodes[nodeID].level + 1
+            if (level != 0) { Assemblies.renderNodes(nodeID, nodes, sublevel) }
 
-        //  Update subnodes state and level and remove them
-            for (node in this.sideNodes) {
-                if (this.sideNodes[node].parents.includes(nodeID)) {
-                    this.sideNodes[node].state = 'closed'
-                    Assemblies.removeNode(node)
+        //  Close previous subnodes
+            this.nodes[this.previous.node].state = 'closed'
+            this.closeSubnodes(level)
+            this.updateState(nodes, 'closed', sublevel)
+            if (this.previous.level != 0) {
+                Assemblies.toggleArrows(this.previous.node, 'close')
+            }
+            Assemblies.highlightNode(this.previous.node, 'off')
+
+        //  Update selected node info
+            this.previous.node = nodeID
+            this.previous.level = level
+            this.nodes[nodeID].state = 'open'
+            if (level != 0) { Assemblies.toggleArrows(nodeID, 'open') }
+            Assemblies.highlightNode(nodeID, 'on')
+            this.updateRecent(nodeID, nodes, level)
+        }
+    }
+
+//  Close selected node
+    SideBar.closeSubnodes = function (level) {
+        let firstLevel = 1
+        if (level != 0) { firstLevel = level }
+        for (let idx = firstLevel; idx < this.recent.length; idx++) {
+            if (this.recent[idx] != null) {
+                let recentNodes = this.recent[idx].nodes
+                let recentID = this.recent[idx].id
+                for (let idy = 0; idy < recentNodes.length; idy++) {
+                    this.nodes[recentID].state = 'closed'
+                    Assemblies.removeNode(recentNodes[idy])
                 }
             }
+            this.recent[idx] = null
         }
+    }
+
+//  Display items
+    Grid.display = function (items) {
+        Parts.renderHead(view)
+        Parts.renderBody(view, items)
     }
 
 /** Initialize Page Components **/

@@ -9,7 +9,7 @@ let ProjectSelector = {
         this.selector = props.selector
 
         Dispatch({
-            action: 'RETRIEVE_PROJECTS_LIST',
+            action: 'QUERY_PROJECTS_LIST',
             message: null
         })
     },
@@ -28,7 +28,7 @@ let ProjectSelector = {
         $(this.selector).change( () => {
             let projID = $(`${this.selector} option:selected`).attr('value')
             Dispatch({
-                action: 'RETRIEVE_PROJECT_ITEMS',
+                action: 'QUERY_PROJECT_DATA',
                 message: projID
             })
         })
@@ -46,14 +46,14 @@ let SideBarGroup = {
 
     renderRoot: function (id, name, desc) {
         let html = `<button id="${id}" type="button"`
-            + `class="node list-group-item list-group-item-action list-group-item-secondary" data-level="0">`
+            + `class="node list-group-item list-group-item-action list-group-item-secondary">`
             + `<img src="${this.circleIcon}" class="float-left mt-3 mr-2">`
             + `<div class="text-truncate">${name}`
             + `<br>${desc}</div></button>`
         $(this.listId).append(html)
         $('#'+ id).click( () => {
             Dispatch({
-                action: 'DISPLAY_NODE_DATA',
+                action: 'DISPLAY_SELECTED_NODE_DATA',
                 message: id
             })
         })
@@ -64,7 +64,7 @@ let SideBarGroup = {
 
         //  Insert node
             let html = `<button id="${nodes[idx]._id}" type="button"`
-                + `class="node list-group-item list-group-item-action list-group-item-secondary" data-level="0">`
+                + `class="node list-group-item list-group-item-action list-group-item-secondary">`
                 + `<img src="${this.closedIcon}" class="float-left mt-3 mr-2">`
                 + `<div class="text-truncate">${nodes[idx].part_TAG}`
                 + `<br>${nodes[idx].dscr_STR}</div></button>`
@@ -80,7 +80,7 @@ let SideBarGroup = {
         //  Activate nodes
             $(`#${nodes[idx]._id}`).click( () => {
                 Dispatch({
-                    action: 'DISPLAY_NODE_DATA',
+                    action: 'DISPLAY_SELECTED_NODE_DATA',
                     message: nodes[idx]._id
                 })
             })
@@ -91,12 +91,21 @@ let SideBarGroup = {
         $(`#${node}`).remove()
     },
 
-    toggleState: function (node, state) {
+    toggleArrows: function (node, state) {
         if (state == 'open') {
             $(`#${node} img`).attr('src', this.expandIcon)
         }
-        if (state == 'closed') {
+        if (state == 'close') {
             $(`#${node} img`).attr('src', this.closedIcon)
+        }
+    },
+
+    highlightNode: function (node, state) {
+        if (state == 'on') {
+            $(`#${node}`).addClass('list-group-item-success')
+        }
+        if (state == 'off') {
+            $(`#${node}`).removeClass('list-group-item-success')
         }
     }
 }
