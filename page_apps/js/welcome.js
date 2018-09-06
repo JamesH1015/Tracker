@@ -3,59 +3,44 @@
  *  Copyright 2018 James Houck, REI Automation, Inc. All rights reserved.
  */
 
-$(document).ready( function () {
+/** Menu **/
+let MenuCP = Object.create(NavigationBar)
 
-/** Create Page Components **/
-    let Start = Object.create(SignInForm)
-    let Message = Object.create(ModalMessage)
-    let Menu = Object.create(NavigationBar)
+    MenuCP.initialize({
+        navLinks: '.navbar-brand, .nav-link'
+    })
 
-/** Data Model Functions **/
+/** Message **/
+let NotificationCP = Object.create(ModalMessage)
 
-//  Authenticate user credentials
-    UserProfile.authenticateUser = function (credentials) {
-        if (credentials.username == '') {
-            Message.display('Missing information. Enter username.')
-        }
-        else if (credentials.password == '') {
-            Message.display('Missing information. Enter password.')
-        }
-        else {
-            let query = { find: {
-                    user_TAG: credentials.username,
-                    auth_STR: credentials.password
-                }, sort: null
-            }
-            Utilities.queryServer(query, '/welcome/users',
-            function (result) { UserProfile.requestPage(result) },
-            function () {
-                Message.display('ERROR: User Profile AJAX request failed!')
-            })
-        }
-    }
+    NotificationCP.initialize({
+        modal: '#modal-message',
+        text: '#modal-message-text'
+    })
 
-//  Request page for authenticated user
-    UserProfile.requestPage = function (result) {
-        if (result.success) {
-            window.open(result.path, '_self')
-        } else {
-            Message.display('ERROR: Server failed to authenticate user.')
-        }
-    }
+/** Application Initialization **/
+let PageCP = Object.create(Page)
 
-/** Initialize Page Components **/
-    Start.initialize({
+    Application.initialize({
+        page: PageCP,
+        menu: MenuCP,
+        note: NotificationCP
+    })
+
+    Application.start( function () { })
+
+/** User Profile **/
+let SignInCP = Object.create(SignInForm)
+
+    SignInCP.initialize({
         usernameInput: '#inp-username',
         passwordInput: '#inp-password',
         signinButton: '#btn-start'
     })
 
-    Message.initialize({
-        modal: '#modal-message',
-        text: '#modal-message-text'
-    })
+    UserProfile.__proto__ = Application
 
-    Menu.initialize({
-        navLinks: '.navbar-brand, .nav-link'
+    UserProfile.initialize({
+        signIn: SignInCP,
+        queryPATH: '/welcome/users'
     })
-})

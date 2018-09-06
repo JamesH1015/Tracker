@@ -20,6 +20,9 @@
 //  Application Configuration Settings
     const conf = require('./config')
 
+//  Navigation Grid Views
+    const views = require('./views')
+
 //  Load Databse Module
     const db = require('./database')
 
@@ -64,7 +67,10 @@
           .then( (results) => {
             if (results.length == 0) { res.json({ success: false }) }
             else if (results[0].active_BOL == true) {
-                let doc = { username: results[0].user_TAG }
+                let doc = {
+                    name: results[0].user_TAG,
+                    group: results[0].group_STR
+                }
                 let token = jwt.sign(doc, conf.token, { expiresIn: '6d' })
                 res.cookie('tracker', token)
                 res.json({
@@ -101,7 +107,12 @@
 //  Serve Navigator Application
     ws.get('/navigator', function (req, res) {
         res.sendFile(__dirname + conf.apps + '/navigator.html')
-})
+    })
+
+//
+    ws.get('/navigator/views', function (req, res) {
+        res.json(views[req.user.group])
+    })
 
 //  GET Resource
     ws.get('/:appl/:coll', function (req, res) {

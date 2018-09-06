@@ -3,33 +3,69 @@
  *  Copyright 2018 James Houck, REI Automation, Inc. All rights reserved.
  */
 
+let Page = {
+
+    ready: function (func) {
+        $(document).ready(func)
+    }
+}
+
 let ProjectSelector = {
 
-    initialize: function (props) {
-        this.selector = props.selector
-
-        Dispatch({
-            action: 'QUERY_PROJECTS_LIST',
-            message: null
-        })
+    initialize: function (propsOBJ) {
+        this.selectID = propsOBJ.selectID
     },
 
-    render: function (list) {
-        for (let idx = 0; idx < list.length; idx++) {
-            let item = list[idx]
-            let html = `<option value="${item['_id']}">`
-                + `${item['proj_TAG']} ${item['cust_TAG']}</option>`
-            $(this.selector).append(html)
+    render: function (dataARY) {
+        this.append(this.selectID, dataARY)
+        this.activate(this.selectID)
+    },
+
+    append: function (id, itemsARY) {
+        for (let idx = 0; idx < itemsARY.length; idx++) {
+            let itemOBJ = itemsARY[idx]
+            let htmlSTR = `<option value="${itemOBJ._id}">`
+                + `${itemOBJ.proj_TAG} ${itemOBJ.cust_TAG}</option>`
+            $(id).append(htmlSTR)
         }
-        this.activate()
     },
 
-    activate: function () {
-        $(this.selector).change( () => {
-            let projID = $(`${this.selector} option:selected`).attr('value')
+    activate: function (id) {
+        $(id).change( () => {
+            let projID = $(`${id} option:selected`).attr('value')
             Dispatch({
-                action: 'QUERY_PROJECT_DATA',
+                action: 'DISPLAY_SELECTED_PROJECT',
                 message: projID
+            })
+        })
+    }
+}
+
+let ViewSelector = {
+
+    initialize: function (propsOBJ) {
+        this.selectID = propsOBJ.selectID
+    },
+
+    render: function (dataARY) {
+        this.append(this.selectID, dataARY)
+        this.activate(this.selectID)
+    },
+    
+    append: function (id, itemsARY) {
+        for (let idx = 0; idx < itemsARY.length; idx++) {
+            let itemOBJ = itemsARY[idx]
+            let htmlSTR = `<option value="${idx}">${itemOBJ.name}</option>`
+            $(id).append(htmlSTR)
+        }
+    },
+
+    activate: function (id) {
+        $(id).change( () => {
+            let viewIDX = $(`${id} option:selected`).attr('value')
+            Dispatch({
+                action: 'DISPLAY_SELECTED_VIEW',
+                message: viewIDX
             })
         })
     }
@@ -37,29 +73,45 @@ let ProjectSelector = {
 
 let SideBarGroup = {
 
-    initialize: function (props) {
-        this.listId = props.listId
-        this.circleIcon = props.circleIcon
-        this.closedIcon = props.closedIcon
-        this.expandIcon = props.expandIcon
+    initialize: function (propsOBJ) {
+        this.listID = propsOBJ.listID
+        this.circleIcon = propsOBJ.circleIcon
+        this.closedIcon = propsOBJ.closedIcon
+        this.expandIcon = propsOBJ.expandIcon
     },
 
-    renderRoot: function (id, name, desc) {
-        let html = `<button id="${id}" type="button"`
+    render: function (request) {
+        switch (request.action) {
+        
+        case 'RENDER_ROOT':
+            this.renderRoot(request.data)
+            break
+
+        case 'RENDER_NODES':
+            this.renderNodes(request.data)
+            break
+
+        case 'HIGHLIGHT_NODE':
+            this.highlightNode(request.data)
+        }
+    },
+
+    renderRoot: function (nodeOBJ) {
+        let html = `<button id="${nodeOBJ.id}" type="button"`
             + `class="node list-group-item list-group-item-action list-group-item-secondary">`
             + `<img src="${this.circleIcon}" class="float-left mt-3 mr-2">`
-            + `<div class="text-truncate">${name}`
-            + `<br>${desc}</div></button>`
-        $(this.listId).append(html)
-        $('#'+ id).click( () => {
+            + `<div class="text-truncate">${nodeOBJ.name}`
+            + `<br>${nodeOBJ.desc}</div></button>`
+        $(this.listID).append(html)
+        $(`#${nodeOBJ.id}`).click( () => {
             Dispatch({
-                action: 'DISPLAY_SELECTED_NODE_DATA',
-                message: id
+                action: 'DISPLAY_SELECTED_NODE_ITEMS',
+                message: nodeOBJ.id
             })
         })
     },
 
-    renderNodes: function (ancestor, nodes, level) {
+    renderNodes: function (nodeID, nodes, level) {
         for (let idx = nodes.length - 1; idx > -1; idx--) {
 
         //  Insert node
@@ -68,7 +120,7 @@ let SideBarGroup = {
                 + `<img src="${this.closedIcon}" class="float-left mt-3 mr-2">`
                 + `<div class="text-truncate">${nodes[idx].part_TAG}`
                 + `<br>${nodes[idx].dscr_STR}</div></button>`
-            $(html).insertAfter(`#${ancestor}`)
+            $(html).insertAfter(`#${nodeID}`)
 
         //  Insert level icons
             for (let idy = 0; idy < level - 1; idy++) {
@@ -80,15 +132,15 @@ let SideBarGroup = {
         //  Activate nodes
             $(`#${nodes[idx]._id}`).click( () => {
                 Dispatch({
-                    action: 'DISPLAY_SELECTED_NODE_DATA',
+                    action: 'DISPLAY_SELECTED_NODE_ITEMS',
                     message: nodes[idx]._id
                 })
             })
         }
     },
 
-    removeNode: function (node) {
-        $(`#${node}`).remove()
+    removeNode: function (nodeID) {
+        $(`#${nodeID}`).remove()
     },
 
     toggleArrows: function (node, state) {
@@ -100,25 +152,30 @@ let SideBarGroup = {
         }
     },
 
-    highlightNode: function (node, state) {
+    highlightNode: function (id, state) {
         if (state == 'on') {
-            $(`#${node}`).addClass('list-group-item-success')
+            $(`#${id}`).addClass('list-group-item-success')
         }
         if (state == 'off') {
-            $(`#${node}`).removeClass('list-group-item-success')
+            $(`#${id}`).removeClass('list-group-item-success')
         }
     }
 }
 
 let DataGrid = {
 
-    initialize: function (props) {
-        this.headId = props.headId
-        this.bodyId = props.bodyId
+    initialize: function (propsOBJ) {
+        this.headID = propsOBJ.headID
+        this.bodyID = propsOBJ.bodyID
     },
 
-    renderHead: function (view) {
-        $(this.headId).empty()
+    render: function(dataOBJ) {
+        this.renderHead(this.headID, dataOBJ.format)
+        this.renderBody(this.bodyID, dataOBJ.format, dataOBJ.rows)
+    },
+
+    renderHead: function (id, formatARY) {
+        $(id).empty()
 
     //  Create row
         let frag = document.createDocumentFragment()
@@ -126,46 +183,46 @@ let DataGrid = {
         row.className = 'row grid-header-bg pt-2'
 
     //  Create columns
-        for (let idx = 0; idx < view.length; idx++) {
+        for (let idx = 0; idx < formatARY.length; idx++) {
             let col = document.createElement('div')
-            col.className = `col-${view[idx].width}`
+            col.className = `col-${formatARY[idx].width}`
             let elm = document.createElement('h6')
-            elm.textContent = view[idx].title
+            elm.textContent = formatARY[idx].title
             col.appendChild(elm)
             row.appendChild(col)
         }
         frag.appendChild(row)
-        $(this.headId).append(frag)
+        $(id).append(frag)
     },
 
-    renderBody: function (view, data) {
-        $(this.bodyId).empty()
+    renderBody: function (id, formatARY, rowsARY) {
+        $(id).empty()
 
     //  Create fragment
         let frag = document.createDocumentFragment()
-        for (let idx = 0; idx < data.length; idx++) {
+        for (let idx = 0; idx < rowsARY.length; idx++) {
         
         //  Create row
             let row = document.createElement('div')
-            row.id = data[idx]['_id']
+            row.id = rowsARY[idx]['_id']
             row.className = 'row grid-row border border-top-0'
     
         //  Create row columns
-            for (let idy = 0; idy < view.length; idy++) {
+            for (let idy = 0; idy < formatARY.length; idy++) {
                 let col = document.createElement('div')
-                let colAttr = view[idy]
+                let colAttr = formatARY[idy]
                 col.className = `col-${colAttr.width} data`
                 col.setAttribute('data-field', colAttr.field)
                 col.setAttribute('data-type', colAttr.dtype)
                 col.contentEditable = colAttr.edit
-                let datum = data[idx][colAttr.field]
+                let datum = rowsARY[idx][colAttr.field]
                 let text = this.formatData(datum, colAttr.dtype)
                 col.textContent = text
                 row.appendChild(col)
             }
             frag.appendChild(row)
         }
-        $(this.bodyId).append(frag)
+        $(id).append(frag)
     },
 
     formatData: function (data, type) {
