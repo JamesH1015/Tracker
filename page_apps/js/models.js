@@ -92,6 +92,7 @@ let ViewsList = {
 
         case 'DISPLAY_SELECTED_VIEW':
             this.viewIDX = request.message
+            //
             break
         }
     },
@@ -322,6 +323,10 @@ let Parts = {
 
         case 'DISPLAY_SELECTED_NODE_ITEMS':
             this.store(request.message)
+            break
+
+        case 'DISPLAY_SELECTED_VIEW':
+            this.display(this.items)
             break
         }
     },
