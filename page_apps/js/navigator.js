@@ -47,11 +47,10 @@ let ProjectSelectorCP = Object.create(ProjectSelector)
         selectID: '#select-project'
     })
 
-    ProjectsList.__proto__ = Application
-
     ProjectsList.initialize({
-        selector: ProjectSelectorCP,
-        queryPATH: '/navigator/projects'
+        component: ProjectSelectorCP,
+        queryPATH: '/navigator/projects',
+        note: Application.note
     })
 
 /** Views List **/
@@ -61,20 +60,19 @@ let ViewSelectorCP = Object.create(ViewSelector)
         selectID: '#select-view'
     })
 
-    ViewsList.__proto__ = Application
-
     ViewsList.initialize({
-        selector: ViewSelectorCP,
+        component: ViewSelectorCP,
         viewIDX: 0,
-        queryPATH: '/navigator/views'
+        queryPATH: '/navigator/views',
+        note: Application.note
     })
 
 /** Project Items **/
-
-    ProjectItems.__proto__ = Application
-
     ProjectItems.initialize({
-        queryPATH: '/navigator/parts'
+        queryPATH: '/navigator/parts',
+        note: Application.note,
+        idKEY: '_id',
+        parentKEY: 'parent_ID'
     })
 
 /** Project Assemblies in Side Bar **/
@@ -87,10 +85,8 @@ let SideBarCP = Object.create(SideBarGroup)
     })
 
     Assemblies.initialize({
-        componentOBJ: SideBarCP,
-        subscribe: {
-            
-        }
+        component: SideBarCP,
+        view: { id: '_id', name: 'part_TAG', desc: 'dscr_STR' }
     })
 
 /** Project Parts in Grid Model **/
@@ -101,5 +97,5 @@ let PartsGridCP = Object.create(DataGrid)
     })
 
     Parts.initialize({
-        componentOBJ: PartsGridCP
+        component: PartsGridCP
     })

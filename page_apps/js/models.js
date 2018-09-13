@@ -26,8 +26,9 @@ let Dispatch = function (request) {
 let ProjectsList = {
 
     initialize: function (init) {
-        this.selector = init.selector
+        this.component = init.component
         this.queryPATH = init.queryPATH
+        this.note = init.note
     },
 
     action: function (request) {
@@ -47,13 +48,9 @@ let ProjectsList = {
         }
     },
 
-    store: function (itemsARY) {
-        this.itemsARY = itemsARY
-        this.displayItems(this.itemsARY)
-    },
-
-    displayItems: function (itemsARY) {
-        this.selector.render(itemsARY)
+    store: function (projectsARY) {
+        this.projects = projectsARY
+        this.component.render(this.projects)
     },
 
     queryServer: function (pathSTR) {
@@ -77,9 +74,10 @@ let ProjectsList = {
 let ViewsList = {
 
     initialize: function (init) {
-        this.selector = init.selector
+        this.component = init.component
         this.viewIDX = init.viewIDX
         this.queryPATH = init.queryPATH
+        this.note = init.note
     },
 
     action: function (request) {
@@ -90,7 +88,7 @@ let ViewsList = {
             break
 
         case 'RETRIEVE_SELECTED_VIEW':
-            return this.itemsARY[this.viewIDX].format
+            return this.views[this.viewIDX]
 
         case 'DISPLAY_SELECTED_VIEW':
             this.viewIDX = request.message
@@ -98,13 +96,9 @@ let ViewsList = {
         }
     },
 
-    store: function (itemsARY) {
-        this.itemsARY = itemsARY
-        this.displayItems(this.itemsARY)
-    },
-
-    displayItems: function (itemsARY) {
-        this.selector.render(itemsARY)
+    store: function (viewsARY) {
+        this.views = viewsARY
+        this.component.render(this.views)
     },
 
     queryServer: function (pathSTR) {
@@ -127,8 +121,11 @@ let ViewsList = {
 
 let ProjectItems = {
 
-    initialize: function (propsOBJ) {
-        this.queryPATH = propsOBJ.queryPATH
+    initialize: function (init) {
+        this.queryPATH = init.queryPATH
+        this.note = init.note
+        this.idKEY = init.idKEY
+        this.parentKEY = init.parentKEY
     },
 
     action: function (request) {
@@ -152,25 +149,14 @@ let ProjectItems = {
     //  and create 'nodes' and 'leafs' arrays for each ancestor
         let idx = 0
         while (idx < itemsLEN) {
-            let itemAncestor = items[idx]['parent_ID']
-            if (!(itemAncestor in this.ancestors)) {
-                if ((itemAncestor != null) && (itemAncestor != '')) {
-                    this.ancestors[itemAncestor] = {
-                        info: {
-                            name: items[idx]['part_TAG'],
-                            desc: items[idx]['dscr_STR']
-                        },
-                        nodes: [], leafs: []
-                    }
+            let ancestorID = items[idx][this.parentKEY]
+            if (!(ancestorID in this.ancestors)) {
+                if ((ancestorID != null) && (ancestorID != '')) {
+                    this.ancestors[ancestorID] = { nodes: [], leafs: [] }
                 } else {
-                    this.rootItem = items[idx]['_id']
-                    this.ancestors[items[idx]['_id']] = {
-                        info: {
-                            name: items[idx]['part_TAG'],
-                            desc: items[idx]['dscr_STR']
-                        },
-                        nodes: [], leafs: []
-                    }
+                    this.rootITEM = items[idx]
+                    let itemID = items[idx][this.idKEY]
+                    this.ancestors[itemID] = { nodes: [], leafs: [] }
                 }
             }
             idx++
@@ -179,36 +165,21 @@ let ProjectItems = {
     //  and push them into arrays mapped to the ancestor
         let idy = 0
         while (idy < itemsLEN) {
-            let itemID = items[idy]['_id']
-            let itemAncestor = items[idy]['parent_ID']
+            let itemID = items[idy][this.idKEY]
+            let ancestorID = items[idy][this.parentKEY]
             if (itemID in this.ancestors) {
-                if ((itemAncestor != null) && (itemAncestor != '')) {
-                    this.ancestors[itemAncestor].nodes.push(items[idy])
+                if ((ancestorID != null) && (ancestorID != '')) {
+                    this.ancestors[ancestorID].nodes.push(items[idy])
                 }
             } else{
-                this.ancestors[itemAncestor].leafs.push(items[idy])
+                this.ancestors[ancestorID].leafs.push(items[idy])
             }
             idy++
         }
 
-        this.displayItems()
-    },
-
-    displayItems: function () {
-        let nodes = {}
-        for (key in this.ancestors) {
-            nodes[key] = {
-                id: key,
-                name: this.ancestors[key].info.name,
-                desc: this.ancestors[key].info.desc
-            }
-        }
         Dispatch({
-            action: 'DISPLAY_INITIAL_PROJECT_ITEMS',
-            message: {
-                rootID: this.rootItem,
-                nodes: nodes
-            }
+            action: 'DISPLAY_ROOT_ITEMS',
+            message: this.rootITEM
         })
     },
 
@@ -232,137 +203,145 @@ let ProjectItems = {
 
 let Assemblies = {
 
-    initialize: function (propsOBJ) {
-        this.component = propsOBJ.componentOBJ
+    initialize: function (init) {
+        this.component = init.component
+        this.note = init.note
+        this.view = init.view
     },
 
     action: function (request) {
         switch (request.action) {
 
-        case 'DISPLAY_INITIAL_PROJECT_ITEMS':
-            this.storeNodes(request.message)
+        case 'DISPLAY_ROOT_ITEMS':
+            this.store(request.message)
             break
         
         case 'DISPLAY_SELECTED_NODE_ITEMS':
-            Dispatch({
-                action: 'DISPLAY_GRID_ITEMS',
-                message: request.message
-            })
-            this.component.highlightNode(this.previous.node, 'off')
-            this.component.highlightNode(request.message, 'on')
-            this.displaySubNodes(request.message)
+            this.updateRecent(request.message)
             break
         }
     },
 
-    storeNodes: function (param) {
-        let rootID = param.rootID
-        this.nodes = param.nodes
-        for (key in this.nodes) {
-            this.nodes[key].state = 'closed'
-            this.nodes[key].level = null
-        }
-        this.displayRoot(this.nodes[rootID])
+    store: function (rootITEM) {
 
-        this.displaySubNodes(rootID)
+        this.rootID = rootITEM[this.view.id]
+        this.nodes = {}
+        this.nodes[this.rootID] = { active: true, level: 0 }
+
+        this.displayRoot(rootITEM)
     },
 
-    displayRoot: function (nodeOBJ) {
-        this.nodes[nodeOBJ.id].state = 'closed'
-        this.nodes[nodeOBJ.id].level = 0
-        this.previous = { node: '', level: null }
-        this.previous.node = nodeOBJ.id
-        this.previous.level = 0
-        this.recent = []
-        this.component.renderRoot(nodeOBJ)
-        this.component.highlightNode(nodeOBJ.id, 'on')
+    displayRoot: function (root) {
 
-        Dispatch({
-            action: 'DISPLAY_GRID_ITEMS',
-            message: nodeOBJ.id
+        this.old = { id: null, level: null}
+        this.now = { id: root[this.view.id], level: 0 }
+
+        this.component.renderRoot(this.view, root)
+
+        Parts.action({
+            action: 'DISPLAY_SELECTED_NODE_ITEMS',
+            message: root[this.view.id]
         })
+
+        this.displayNodes(this.now.id, this.now.level)
     },
 
-    displaySubNodes: function (nodeID) {
-        let level = this.nodes[nodeID].level
-        let sublevel = level + 1
+    updateRecent: function (nodeID) {
 
-    //  Close previous subnodes
-        this.closeSubNodes(level)
-        this.nodes[this.previous.node].state = 'closed'
-        if (this.previous.level != 0) {
-            this.component.toggleArrows(this.previous.node, 'close')
+        this.old.id = this.now.id
+        this.old.level = this.now.level
+        this.now.id = nodeID
+        this.now.level = this.nodes[nodeID].level
+        
+        if (this.now.level > this.old.level) {
+            this.displayNodes(this.now.id, this.now.level)
+            this.nodes[this.now.id].active = true
         }
 
-        if (this.nodes[nodeID].state == 'closed') {
+        if ((this.now.level <= this.old.level) && (this.now.level != 0)) {
+            this.closeNodes(this.now.level)
 
-        //  Update subnodes state and level and render them
-            let items = ProjectItems.action({
-                action: 'RETRIEVE_NODE_ITEMS_BY_TYPE',
-                message: { id: nodeID, type: 'nodes' }
-            })
+            this.displayNodes(this.now.id, this.now.level)
+            this.nodes[this.now.id].active = true
+        }
 
-        //  Update selected node info
-            this.component.renderNodes(nodeID, items, sublevel)
-            this.previous.node = nodeID
-            this.previous.level = level
-            this.nodes[nodeID].state = 'open'
-            if (level != 0) {
-                this.component.toggleArrows(nodeID, 'open')
+        if (this.now.level == 0) { this.closeNodes(1) }
+    },
+
+    displayNodes: function (nodeID, nodeLevel) {
+
+        let items = ProjectItems.action({
+            action: 'RETRIEVE_NODE_ITEMS_BY_TYPE',
+            message: { id: nodeID, type: 'nodes' }
+        })
+
+        if (items.length > 0) {
+
+            let subLevel = nodeLevel + 1
+
+            for (let idx = 0; idx < items.length; idx++) {
+                let itemID = items[idx][this.view.id]
+                this.nodes[itemID] = { active: false, level: subLevel }
             }
-            this.updateRecent(nodeID, items, level)
-            this.updateState(items, sublevel)
+
+            this.component.toggleArrows(nodeID, 'open')
+            this.component.renderNodes(nodeID, this.view, items, subLevel)
         }
     },
 
-    closeSubNodes: function (level) {
-        let firstLevel = 1
-        if (level != 0) { firstLevel = level }
-        for (let idx = firstLevel; idx < this.recent.length; idx++) {
-            if (this.recent[idx] != null) {
-                let recentNodes = this.recent[idx].nodes
-                for (let idy = 0; idy < recentNodes.length; idy++) {
-                    this.nodes[recentNodes[idy]].state = 'closed'
-                    this.component.removeNode(recentNodes[idy])
-                }
+    closeNodes: function (nodeLevel) {
+        let minLevel = 2
+        if (nodeLevel != 0) { minLevel = nodeLevel + 1 }
+        
+        for (key in this.nodes) {
+            let level = this.nodes[key].level
+            if (level >= minLevel) {
+                this.component.removeNode(key)
+                this.nodes.active = false
+                this.nodes[key].level = -1
             }
-            this.recent[idx] = null
-        }
-    },
-
-    updateState: function (subnodes, level) {
-        for (let idx = 0; idx < subnodes.length; idx++) {
-            let nodeID = subnodes[idx]['_id']
-            this.nodes[nodeID].level = level
-        }
-    },
-
-    updateRecent: function (nodeID, nodes, level) {
-        this.recent[level] = { id: nodeID, nodes: [] }
-        for (let idx = 0; idx < nodes.length; idx++) {
-            this.recent[level].nodes.push(nodes[idx]._id)
+            let active = this.nodes[key].active
+            if ((level = nodeLevel) && (active)) {
+                this.component.toggleArrows(key, 'close')
+                this.nodes[key].active = false
+            }
         }
     }
 }
 
 let Parts = {
 
-    initialize: function (propsOBJ) {
-        this.component = propsOBJ.componentOBJ
+    initialize: function (init) {
+        this.component = init.component
+        this.currNodeID = ''
+        this.prevNodeID = ''
     },
 
     action: function (request) {
         switch (request.action) {
 
-        case 'DISPLAY_GRID_ITEMS':
-            let nodeID = request.message
-            let leafs = ProjectItems.action({
-                action: 'RETRIEVE_NODE_ITEMS_BY_TYPE',
-                message: { id: nodeID, type: 'leafs' }
-            })
-            this.display(leafs)
+        case 'DISPLAY_SELECTED_NODE_ITEMS':
+            this.store(request.message)
             break
         }
+    },
+
+    store: function (nodeID) {
+        let copyNodeID = this.currNodeID
+        this.prevNodeID = copyNodeID
+        this.currNodeID = nodeID
+
+        if (this.prevNodeID != '') {
+            this.component.highlightNode(this.prevNodeID, 'off')
+        }
+        this.component.highlightNode(nodeID, 'on')
+
+        this.items = ProjectItems.action({
+            action: 'RETRIEVE_NODE_ITEMS_BY_TYPE',
+            message: { id: nodeID, type: 'leafs' }
+        })
+
+        this.display(this.items)
     },
 
     display: function(items) {
@@ -370,7 +349,7 @@ let Parts = {
             action: 'RETRIEVE_SELECTED_VIEW',
             message: null
         })
-        this.component.render({ format: view, rows: items })
+        this.component.render(view, items)
     }
 }
 

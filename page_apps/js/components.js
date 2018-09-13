@@ -73,67 +73,62 @@ let ViewSelector = {
 
 let SideBarGroup = {
 
-    initialize: function (propsOBJ) {
-        this.listID = propsOBJ.listID
-        this.circleIcon = propsOBJ.circleIcon
-        this.closedIcon = propsOBJ.closedIcon
-        this.expandIcon = propsOBJ.expandIcon
+    initialize: function (init) {
+        this.listID = init.listID
+        this.circleIMG = init.circleIcon
+        this.closedIMG = init.closedIcon
+        this.expandIMG = init.expandIcon
+        this.rootID = ''
     },
 
-    render: function (request) {
-        switch (request.action) {
-        
-        case 'RENDER_ROOT':
-            this.renderRoot(request.data)
-            break
+    renderRoot: function (view, root) {
+        let id = root[view.id]
+        let name = root[view.name]
+        let desc = root[view.desc]
 
-        case 'RENDER_NODES':
-            this.renderNodes(request.data)
-            break
+        this.rootID = root[view.id] // toggleArrows exclusion
 
-        case 'HIGHLIGHT_NODE':
-            this.highlightNode(request.data)
-        }
-    },
-
-    renderRoot: function (nodeOBJ) {
-        let html = `<button id="${nodeOBJ.id}" type="button"`
+        let html = `<button id="${id}" type="button"`
             + `class="node list-group-item list-group-item-action list-group-item-secondary">`
-            + `<img src="${this.circleIcon}" class="float-left mt-3 mr-2">`
-            + `<div class="text-truncate">${nodeOBJ.name}`
-            + `<br>${nodeOBJ.desc}</div></button>`
+            + `<img src="${this.circleIMG}" class="float-left mt-3 mr-2">`
+            + `<div class="text-truncate">${name}`
+            + `<br>${desc}</div></button>`
         $(this.listID).append(html)
-        $(`#${nodeOBJ.id}`).click( () => {
+        $(`#${id}`).click( () => {
             Dispatch({
                 action: 'DISPLAY_SELECTED_NODE_ITEMS',
-                message: nodeOBJ.id
+                message: id
             })
         })
     },
 
-    renderNodes: function (nodeID, nodes, level) {
+    renderNodes: function (nodeID, view, nodes, level) {
         for (let idx = nodes.length - 1; idx > -1; idx--) {
 
+            let id = nodes[idx][view.id]
+            let name = nodes[idx][view.name]
+            let desc = nodes[idx][view.desc]
+
         //  Insert node
-            let html = `<button id="${nodes[idx]._id}" type="button"`
+            let html = `<button id="${id}" type="button"`
                 + `class="node list-group-item list-group-item-action list-group-item-secondary">`
-                + `<img src="${this.closedIcon}" class="float-left mt-3 mr-2">`
-                + `<div class="text-truncate">${nodes[idx].part_TAG}`
-                + `<br>${nodes[idx].dscr_STR}</div></button>`
+                + `<img src="${this.closedIMG}" class="float-left mt-3 mr-2">`
+                + `<div class="text-truncate">${name}`
+                + `<br>${desc}</div></button>`
             $(html).insertAfter(`#${nodeID}`)
 
         //  Insert level icons
             for (let idy = 0; idy < level - 1; idy++) {
-                let html = `<img src="${this.closedIcon}"`
+                let html = `<img src="${this.closedIMG}"`
                     + `class="float-left mt-3">`
-                $(`#${nodes[idx]._id} img:first`).before(html)
+                $(`#${id} img:first`).before(html)
             }
 
         //  Activate nodes
-            $(`#${nodes[idx]._id}`).click( () => {
+            $(`#${id}`).click( () => {
                 Dispatch({
                     action: 'DISPLAY_SELECTED_NODE_ITEMS',
-                    message: nodes[idx]._id
+                    message: id
                 })
             })
         }
@@ -143,21 +138,14 @@ let SideBarGroup = {
         $(`#${nodeID}`).remove()
     },
 
-    toggleArrows: function (node, state) {
-        if (state == 'open') {
-            $(`#${node} img`).attr('src', this.expandIcon)
-        }
-        if (state == 'close') {
-            $(`#${node} img`).attr('src', this.closedIcon)
-        }
-    },
-
-    highlightNode: function (id, state) {
-        if (state == 'on') {
-            $(`#${id}`).addClass('list-group-item-success')
-        }
-        if (state == 'off') {
-            $(`#${id}`).removeClass('list-group-item-success')
+    toggleArrows: function (nodeID, state) {
+        if (nodeID != this.rootID) {
+            if (state == 'open') {
+                $(`#${nodeID} img`).attr('src', this.expandIMG)
+            }
+            if (state == 'close') {
+                $(`#${nodeID} img`).attr('src', this.closedIMG)
+            }
         }
     }
 }
@@ -169,12 +157,12 @@ let DataGrid = {
         this.bodyID = propsOBJ.bodyID
     },
 
-    render: function(dataOBJ) {
-        this.renderHead(this.headID, dataOBJ.format)
-        this.renderBody(this.bodyID, dataOBJ.format, dataOBJ.rows)
+    render: function(view, rows) {
+        this.renderHead(this.headID, view.columns)
+        this.renderBody(this.bodyID, view.attributes, view.columns, rows)
     },
 
-    renderHead: function (id, formatARY) {
+    renderHead: function (id, columnsARY) {
         $(id).empty()
 
     //  Create row
@@ -183,11 +171,11 @@ let DataGrid = {
         row.className = 'row grid-header-bg pt-2'
 
     //  Create columns
-        for (let idx = 0; idx < formatARY.length; idx++) {
+        for (let idx = 0; idx < columnsARY.length; idx++) {
             let col = document.createElement('div')
-            col.className = `col-${formatARY[idx].width}`
+            col.className = `col-${columnsARY[idx].width}`
             let elm = document.createElement('h6')
-            elm.textContent = formatARY[idx].title
+            elm.textContent = columnsARY[idx].title
             col.appendChild(elm)
             row.appendChild(col)
         }
@@ -195,7 +183,7 @@ let DataGrid = {
         $(id).append(frag)
     },
 
-    renderBody: function (id, formatARY, rowsARY) {
+    renderBody: function (id, rowAttr, columnsARY, rowsARY) {
         $(id).empty()
 
     //  Create fragment
@@ -204,13 +192,13 @@ let DataGrid = {
         
         //  Create row
             let row = document.createElement('div')
-            row.id = rowsARY[idx]['_id']
+            row.id = rowsARY[idx][rowAttr.id]
             row.className = 'row grid-row border border-top-0'
     
         //  Create row columns
-            for (let idy = 0; idy < formatARY.length; idy++) {
+            for (let idy = 0; idy < columnsARY.length; idy++) {
                 let col = document.createElement('div')
-                let colAttr = formatARY[idy]
+                let colAttr = columnsARY[idy]
                 col.className = `col-${colAttr.width} data`
                 col.setAttribute('data-field', colAttr.field)
                 col.setAttribute('data-type', colAttr.dtype)
@@ -223,6 +211,15 @@ let DataGrid = {
             frag.appendChild(row)
         }
         $(id).append(frag)
+    },
+
+    highlightNode: function (nodeID, state) {
+        if (state == 'on') {
+            $(`#${nodeID}`).addClass('list-group-item-success')
+        }
+        if (state == 'off') {
+            $(`#${nodeID}`).removeClass('list-group-item-success')
+        }
     },
 
     formatData: function (data, type) {

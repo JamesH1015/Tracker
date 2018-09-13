@@ -1,6 +1,6 @@
 {
   "mechanical": [
-    { "name":"Parts", "format": [
+    { "name":"Parts", "attributes": { "id": "_id" }, "columns": [
       { "title": "Part Num", "width": "2", "field": "part_TAG",
         "dtype": "string", "edit": true },
       { "title": "Description", "width": "3", "field": "dscr_STR",
@@ -18,7 +18,7 @@
       { "title": "Status", "width": "1", "field": "status_STR",
         "dtype": "string", "edit": true }
     ]},
-    { "name": "Orders", "format": [
+    { "name": "Orders", "attributes": { "id": "_id" }, "columns": [
       { "title": "Mfr", "width": "1", "field": "mfr_STR",
         "dtype": "string", "edit": true },
       { "title": "Part Num", "width": "1", "field": "part_TAG",
@@ -46,7 +46,7 @@
     ]}
   ],
   "purchasing": [
-    { "name": "Parts", "format": [
+    { "name": "Parts", "attributes": { "id": "_id" }, "columns": [
       { "title": "Part Num", "width": "2", "field": "part_TAG",
         "dtype": "string", "edit": true },
       { "title": "Description", "width": "3", "field": "dscr_STR",
@@ -64,7 +64,7 @@
       { "title": "Status", "width": "1", "field": "status_STR",
         "dtype": "string", "edit": true }
     ]},
-    { "name": "Orders", "format": [
+    { "name": "Orders", "attributes": { "id": "_id" }, "columns": [
       { "title": "Mfr", "width": "1", "field": "mfr_STR",
         "dtype": "string", "edit": true },
       { "title": "Part Num", "width": "1", "field": "part_TAG",
