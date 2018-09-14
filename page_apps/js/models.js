@@ -316,6 +316,7 @@ let Parts = {
         this.component = init.component
         this.currNodeID = ''
         this.prevNodeID = ''
+        this.filter = {}
     },
 
     action: function (request) {
@@ -326,7 +327,22 @@ let Parts = {
             break
 
         case 'DISPLAY_SELECTED_VIEW':
-            this.display(this.items)
+            this.displayView(this.items)
+            break
+
+        case 'DISPLAY_FILTERED_ITEMS':
+            this.filter = request.message
+            this.displayFilter(this.items)
+            break
+
+        case 'STORE_FILTER_INPUTS':
+            this.filterBlank = request.message
+            this.filter = request.message
+            break
+
+        case 'CLEAR_FILTER':
+            this.filter = this.filterBlank
+            this.displayFilter(this.items)
             break
         }
     },
@@ -346,15 +362,24 @@ let Parts = {
             message: { id: nodeID, type: 'leafs' }
         })
 
-        this.display(this.items)
+        this.displayView(this.items)
     },
 
-    display: function(items) {
+    displayView: function(items) {
         let view = ViewsList.action({
             action: 'RETRIEVE_SELECTED_VIEW',
             message: null
         })
-        this.component.render(view, items)
+        this.component.renderHead(view)
+        this.component.renderBody(view, items, this.filter)
+    },
+
+    displayFilter: function (items) {
+        let view = ViewsList.action({
+            action: 'RETRIEVE_SELECTED_VIEW',
+            message: null
+        })
+        this.component.renderBody(view, items, this.filter)
     }
 }
 

@@ -93,7 +93,8 @@ let SideBarCP = Object.create(SideBarGroup)
 let PartsGridCP = Object.create(DataGrid)
     PartsGridCP.initialize({
         headID: '#grid-header',
-        bodyID: '#grid-body'
+        bodyID: '#grid-body',
+        filterClearBtn: '#btn-filter-clear'
     })
 
     Parts.initialize({

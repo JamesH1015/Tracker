@@ -152,30 +152,50 @@ let SideBarGroup = {
 
 let DataGrid = {
 
-    initialize: function (propsOBJ) {
-        this.headID = propsOBJ.headID
-        this.bodyID = propsOBJ.bodyID
+    initialize: function (init) {
+        this.headID = init.headID
+        this.bodyID = init.bodyID
+        this.filterClearBtn = init.filterClearBtn
+
+        $(this.filterClearBtn).click( () => {
+            $('.filter').each( function () { $(this).val('') })
+            Dispatch({
+                action: 'CLEAR_FILTER',
+                message: null
+            })
+        })
     },
 
-    render: function(view, rows) {
-        this.renderHead(this.headID, view.columns)
-        this.renderBody(this.bodyID, view.attributes, view.columns, rows)
+    renderHead: function(view) {
+        this.renderTitle(this.headID, view)
+        let inputs = this.renderFilter(this.headID, view)
+        Dispatch({
+            action: 'STORE_FILTER_INPUTS',
+            message: inputs
+        })
     },
 
-    renderHead: function (id, columnsARY) {
+    renderBody: function (view, rows, filter) {
+        this.renderRows(this.bodyID, view, rows, filter)
+    },
+
+    renderTitle: function (id, view) {
+        let columns = view.columns
+
         $(id).empty()
 
     //  Create row
         let frag = document.createDocumentFragment()
         let row = document.createElement('div')
-        row.className = 'row grid-header-bg pt-2'
+        row.className = 'row bg-grid-header pt-2'
 
     //  Create columns
-        for (let idx = 0; idx < columnsARY.length; idx++) {
+        for (let idx = 0; idx < columns.length; idx++) {
+            let colAttr = columns[idx]
             let col = document.createElement('div')
-            col.className = `col-${columnsARY[idx].width}`
+            col.className = `col-${colAttr.width}`
             let elm = document.createElement('h6')
-            elm.textContent = columnsARY[idx].title
+            elm.textContent = colAttr.title
             col.appendChild(elm)
             row.appendChild(col)
         }
@@ -183,32 +203,86 @@ let DataGrid = {
         $(id).append(frag)
     },
 
-    renderBody: function (id, rowAttr, columnsARY, rowsARY) {
+    renderFilter: function (id, view) {
+        let columns = view.columns
+
+    //  Create row
+        let frag = document.createDocumentFragment()
+        let row = document.createElement('div')
+        row.className = 'row bg-grid-header'
+        let inputs = {}
+
+    //  Create columns
+        for (let idx = 0; idx < columns.length; idx++) {
+            let colAttr = columns[idx]
+            var col = document.createElement('div')
+            col.className = `col-${colAttr.width} pl-1 pr-1 pb-2`
+            var elm = document.createElement('input')
+            elm.id = colAttr.field
+            elm.className = 'form-control form-control-sm filter'
+            elm.type = 'text'
+            col.appendChild(elm)
+            row.appendChild(col)
+
+            inputs[colAttr.field] = ''
+        }
+        frag.appendChild(row)
+        $(id).append(frag)
+    
+    //  Keyup event
+        $('.filter').keyup( () => {
+            let inputs = {}
+            $('.filter').each( function () {
+                let key = $(this).attr('id');
+                let val = $(this).val();
+                inputs[key] = val;
+            })
+            Dispatch({
+                action: 'DISPLAY_FILTERED_ITEMS',
+                message: inputs
+            })
+        })
+        return inputs
+    },
+
+    renderRows: function (id, view, rows, filter) {
+        let rowAttr = view.attributes
+        let columns = view.columns
+
         $(id).empty()
 
     //  Create fragment
         let frag = document.createDocumentFragment()
-        for (let idx = 0; idx < rowsARY.length; idx++) {
+        for (let idx = 0; idx < rows.length; idx++) {
         
         //  Create row
             let row = document.createElement('div')
-            row.id = rowsARY[idx][rowAttr.id]
+            row.id = rows[idx][rowAttr.id]
             row.className = 'row grid-row border border-top-0'
     
         //  Create row columns
-            for (let idy = 0; idy < columnsARY.length; idy++) {
+            let filterRowMatch = true  // Set filter row match condition
+            for (let idy = 0; idy < columns.length; idy++) {
+                let colAttr = columns[idy]
                 let col = document.createElement('div')
-                let colAttr = columnsARY[idy]
                 col.className = `col-${colAttr.width} data`
                 col.setAttribute('data-field', colAttr.field)
                 col.setAttribute('data-type', colAttr.dtype)
                 col.contentEditable = colAttr.edit
-                let datum = rowsARY[idx][colAttr.field]
+                let datum = rows[idx][colAttr.field]
                 let text = this.formatData(datum, colAttr.dtype)
                 col.textContent = text
                 row.appendChild(col)
+
+            //  Filter Row
+                let key = colAttr.field
+                let val = text
+                if (filter[key] != '') {
+                    var filterExp = new RegExp(filter[key], 'gi');
+                    if (!filterExp.test(val)) { filterRowMatch = false }
+                }
             }
-            frag.appendChild(row)
+            if (filterRowMatch) { frag.appendChild(row) }
         }
         $(id).append(frag)
     },

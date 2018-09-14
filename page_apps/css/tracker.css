@@ -58,9 +58,7 @@ footer {
   z-index: 1;
 }
 
-.grid-header-bg {
-  border-top: 1px solid #B6B6B6;
-  border-bottom: 1px solid #B6B6B6;
+.bg-grid-header {
   background-color: #D6D8DB;
 }
 
