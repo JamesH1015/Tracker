@@ -16,7 +16,7 @@
 
 <!-- Navigation Bar -->
 <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-  <a class="navbar-brand" href="#modal-icon">
+  <a class="navbar-brand" href="#">
     <img src="img/gear-icon-sm.png" class="brand" href="#modal-icon">
   </a>
   <button class="navbar-toggler" type="button"
@@ -48,13 +48,19 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header bg-success">
-        <h5 class="modal-title text-light">Tracker Settings</h5>
+        <h5 class="modal-title text-light">Navigator Settings</h5>
         <button type="button" class="close" data-dismiss="modal">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
       <div class="modal-body bg-white text-dark">
         <h5>Display</h5>
+        <form class="form">
+          <div class="custom-control custom-checkbox">
+            <input type="checkbox" class="custom-control-input" id="check-highlight-rows">
+            <label class="custom-control-label" for="check-highlight-rows">Highlight parts by status</label>
+          </div>
+        </form>
       </div>
     </div>
   </div>

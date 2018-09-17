@@ -7,7 +7,17 @@
 let MenuCP = Object.create(NavigationBar)
 
     MenuCP.initialize({
-        navLinks: '.navbar-brand, .nav-link'
+        navLinks: '.navbar-brand, .nav-link',
+        settings: {
+            highlightRows: '#check-highlight-rows'
+        }
+    })
+
+    Settings.initialize({
+        component: MenuCP,
+        settings: {
+            highlightRows: null
+        }
     })
 
 /** Message **/
@@ -37,6 +47,26 @@ let PageCP = Object.create(Page)
         Dispatch({
             action: 'QUERY_VIEWS_LIST',
             message: null
+        })
+
+        let schemaName = UserProfile.action({
+            action: 'RETRIEVE_PROPERTY',
+            message: 'colorsSchema'
+        })
+
+        Parts.action({
+            action: 'QUERY_COLORS',
+            message: { schema: schemaName }
+        })
+
+        let highlightRowsActive = UserProfile.action({
+            action: 'RETRIEVE_PROPERTY',
+            message: 'colorsActive'
+        })
+
+        Settings.action({
+            action: 'INITIALIZE_MENU',
+            message: { highlightRows: highlightRowsActive }
         })
     })
 
@@ -98,5 +128,9 @@ let PartsGridCP = Object.create(DataGrid)
     })
 
     Parts.initialize({
-        component: PartsGridCP
+        component: PartsGridCP,
+        queryPATH: '/navigator/colors',
+        settings: {
+            colorsActive: 'highlightRows'
+        }
     })

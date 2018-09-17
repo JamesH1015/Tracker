@@ -21,6 +21,7 @@ let Dispatch = function (request) {
     Assemblies.action(request)
     Parts.action(request)
     UserProfile.action(request)
+    Settings.action(request)
 }
 
 let ProjectsList = {
@@ -314,13 +315,20 @@ let Parts = {
 
     initialize: function (init) {
         this.component = init.component
+        this.queryPATH = init.queryPATH
+        this.settings = init.settings
         this.currNodeID = ''
         this.prevNodeID = ''
         this.filter = {}
+        this.colors = {}
     },
 
     action: function (request) {
         switch (request.action) {
+
+        case 'QUERY_COLORS':
+            this.queryServer(this.queryPATH, request.message)
+            break
 
         case 'DISPLAY_SELECTED_NODE_ITEMS':
             this.store(request.message)
@@ -344,6 +352,15 @@ let Parts = {
             this.filter = this.filterBlank
             this.displayFilter(this.items)
             break
+
+        case 'CHANGE_SETTING':
+            let key = request.message.key
+            let active = request.message.active
+            if (key == this.settings.colorsActive) {
+                this.colors.active = active
+                this.displayView(this.items)
+            }
+            break
         }
     },
 
@@ -365,13 +382,25 @@ let Parts = {
         this.displayView(this.items)
     },
 
+    storeColors: function (schema) {
+        let colorsActive = Settings.action({
+            action: 'RETRIEVE_SETTING',
+            message: this.settings.colorsActive
+        })
+        this.colors = {
+            active: colorsActive,
+            key: 'status_STR',
+            schema: schema
+        }
+    },
+
     displayView: function(items) {
         let view = ViewsList.action({
             action: 'RETRIEVE_SELECTED_VIEW',
             message: null
         })
         this.component.renderHead(view)
-        this.component.renderBody(view, items, this.filter)
+        this.component.renderBody(view, items, this.filter, this.colors)
     },
 
     displayFilter: function (items) {
@@ -379,7 +408,24 @@ let Parts = {
             action: 'RETRIEVE_SELECTED_VIEW',
             message: null
         })
-        this.component.renderBody(view, items, this.filter)
+        this.component.renderBody(view, items, this.filter, this.colors)
+    },
+
+    queryServer: function (pathSTR, schemaName) {
+        let queryOBJ = { find: schemaName }
+        let ajaxOBJ = {
+            method: 'GET', url: pathSTR,
+            data: queryOBJ, dataType: 'json'
+        }
+        $.ajax(ajaxOBJ).done( (results) => {
+            if (results != null) { this.storeColors(results) }
+            else {
+                this.note.display('ERROR: Colors not found.')
+            }
+        })
+        .fail( () => {
+            this.note.display('ERROR: Colors List AJAX request failed!')
+        })
     }
 }
 
@@ -396,6 +442,12 @@ let UserProfile = {
         case 'AUTHENTICATE_USER':
             this.authenticateUser(request.message)
             break
+
+        case 'RETRIEVE_PROPERTY':
+            let val = sessionStorage.getItem(request.message)
+            if (val == 'true') { val = true }
+            if (val == 'false') { val = false }
+            return val
         }
     },
 
@@ -415,15 +467,13 @@ let UserProfile = {
             sessionStorage.setItem('forename', result.forename)
             sessionStorage.setItem('surname', result.surname)
             sessionStorage.setItem('group', result.group)
+            sessionStorage.setItem('colorsActive', result.profile.colors.active)
+            sessionStorage.setItem('colorsSchema', result.profile.colors.schema)
             sessionStorage.setItem('admin', result.admin)
             this.requestPage(result.path)
         } else {
             this.note.display('ERROR: Invalid credentials.')
         }
-    },
-
-    retrieve: function (key) {
-        return sessionStorage.getItem(key)
     },
 
     requestPage: function (pathSTR) {
@@ -445,5 +495,40 @@ let UserProfile = {
         .fail( () => {
             this.note.display('ERROR: User Profile AJAX request failed!')
         })
+    }
+}
+
+let Settings = {
+
+    initialize: function (init) {
+        this.component = init.component
+        this.settings = init.settings
+    },
+
+    action: function (request) {
+        switch (request.action) {
+
+        case 'INITIALIZE_MENU':
+            this.initializeMenu(request.message)
+            break
+
+        case 'CHANGE_SETTING':
+            let key = request.message.key
+            let active = request.message.active
+            this.settings[key] = active
+            break
+
+        case 'RETRIEVE_SETTING':
+            return this.settings[request.message]
+        }
+    },
+
+    initializeMenu: function (userSettings) {
+        for (key in userSettings) {
+            if (key in this.settings) {
+                this.settings[key] = userSettings[key]
+                this.component.initializeCheckbox(key, userSettings[key])
+            }
+        }
     }
 }

@@ -23,6 +23,9 @@
 //  Navigation Grid Views
     const views = require('./views')
 
+//  Navigation Grid Row Colors
+    const colors = require('./colors')
+
 //  Load Databse Module
     const db = require('./database')
 
@@ -80,6 +83,7 @@
                     forename: results[0].forename_STR,
                     surname: results[0].surname_STR,
                     group: results[0].group_STR,
+                    profile: results[0].profile,
                     admin: results[0].admin_BOL
                 })
             } else { res.json({ success: false }) }
@@ -109,9 +113,14 @@
         res.sendFile(__dirname + conf.apps + '/navigator.html')
     })
 
-//
+//  Serve Navigator Parts Grid Views
     ws.get('/navigator/views', function (req, res) {
         res.json(views[req.user.group])
+    })
+
+//  Serve Navigator Parts Grid Colors
+    ws.get('/navigator/colors', function (req, res) {
+        res.json(colors[req.query.find.schema])
     })
 
 //  GET Resource

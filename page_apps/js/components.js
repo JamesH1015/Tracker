@@ -175,8 +175,8 @@ let DataGrid = {
         })
     },
 
-    renderBody: function (view, rows, filter) {
-        this.renderRows(this.bodyID, view, rows, filter)
+    renderBody: function (view, rows, filter, colors) {
+        this.renderRows(this.bodyID, view, rows, filter, colors)
     },
 
     renderTitle: function (id, view) {
@@ -245,7 +245,7 @@ let DataGrid = {
         return inputs
     },
 
-    renderRows: function (id, view, rows, filter) {
+    renderRows: function (id, view, rows, filter, colors) {
         let rowAttr = view.attributes
         let columns = view.columns
 
@@ -259,6 +259,13 @@ let DataGrid = {
             let row = document.createElement('div')
             row.id = rows[idx][rowAttr.id]
             row.className = 'row grid-row border border-top-0'
+
+        //  Set Background Color
+            if (colors.active) {
+                if (colors.schema.hasOwnProperty(rows[idx][colors.key])) {
+                    row.style.background = colors.schema[rows[idx][colors.key]]
+                }
+            }
     
         //  Create row columns
             let filterRowMatch = true  // Set filter row match condition
@@ -356,8 +363,9 @@ let ModalMessage = {
 
 let NavigationBar = {
 
-    initialize: function (props) {
-        this.navLinks = props.navLinks
+    initialize: function (init) {
+        this.navLinks = init.navLinks
+        this.settings = init.settings
 
         $(this.navLinks).click( (event) => {
             event.preventDefault();
@@ -365,6 +373,17 @@ let NavigationBar = {
             if (href.indexOf('#') == 0) {
                 $(href).modal();
             }
+        })
+    },
+
+    initializeCheckbox: function (key, checked) {
+        let id = this.settings[key]
+        $(id).prop('checked', checked)
+        $(id).change( function () {
+            Dispatch({
+                action: 'CHANGE_SETTING',
+                message: { key: key, active: this.checked }
+            })
         })
     }
 }
