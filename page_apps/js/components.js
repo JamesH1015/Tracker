@@ -3,36 +3,41 @@
  *  Copyright 2018 James Houck, REI Automation, Inc. All rights reserved.
  */
 
-let Page = {
+let HTMLDoc = {
 
     ready: function (func) {
         $(document).ready(func)
+    },
+
+    open: function (path) {
+        window.open(path, '_self')
     }
 }
 
-let ProjectSelector = {
+let ProjectSelect = {
 
-    initialize: function (propsOBJ) {
-        this.selectID = propsOBJ.selectID
+    initialize: function (init) {
+        this.selectID = init.selectID
     },
 
-    render: function (dataARY) {
-        this.append(this.selectID, dataARY)
+    render: function (view, items) {
+        this.append(this.selectID, view, items)
         this.activate(this.selectID)
     },
 
-    append: function (id, itemsARY) {
-        for (let idx = 0; idx < itemsARY.length; idx++) {
-            let itemOBJ = itemsARY[idx]
-            let htmlSTR = `<option value="${itemOBJ._id}">`
-                + `${itemOBJ.proj_TAG} ${itemOBJ.cust_TAG}</option>`
-            $(id).append(htmlSTR)
+    append: function (selectID, view, items) {
+        for (let idx = 0; idx < items.length; idx++) {
+            let id = items[idx][view.id]
+            let name = items[idx][view.name]
+            let desc = items[idx][view.desc]
+            let option = `<option value="${id}">${name} ${desc}</option>`
+            $(selectID).append(option)
         }
     },
 
-    activate: function (id) {
-        $(id).change( () => {
-            let projID = $(`${id} option:selected`).attr('value')
+    activate: function (selectID) {
+        $(selectID).change( () => {
+            let projID = $(`${selectID} option:selected`).attr('value')
             Dispatch({
                 action: 'DISPLAY_SELECTED_PROJECT',
                 message: projID
@@ -41,28 +46,28 @@ let ProjectSelector = {
     }
 }
 
-let ViewSelector = {
+let ViewSelect = {
 
-    initialize: function (propsOBJ) {
-        this.selectID = propsOBJ.selectID
+    initialize: function (init) {
+        this.selectID = init.selectID
     },
 
-    render: function (dataARY) {
-        this.append(this.selectID, dataARY)
+    render: function (items) {
+        this.append(this.selectID, items)
         this.activate(this.selectID)
     },
     
-    append: function (id, itemsARY) {
-        for (let idx = 0; idx < itemsARY.length; idx++) {
-            let itemOBJ = itemsARY[idx]
-            let htmlSTR = `<option value="${idx}">${itemOBJ.name}</option>`
-            $(id).append(htmlSTR)
+    append: function (selectID, items) {
+        for (let idx = 0; idx < items.length; idx++) {
+            let name = items[idx].name
+            let option = `<option value="${idx}">${name}</option>`
+            $(selectID).append(option)
         }
     },
 
-    activate: function (id) {
-        $(id).change( () => {
-            let viewIDX = $(`${id} option:selected`).attr('value')
+    activate: function (selectID) {
+        $(selectID).change( () => {
+            let viewIDX = $(`${selectID} option:selected`).attr('value')
             Dispatch({
                 action: 'DISPLAY_SELECTED_VIEW',
                 message: viewIDX
@@ -350,9 +355,9 @@ let SignInForm = {
 
 let ModalMessage = {
 
-    initialize: function (props) {
-        this.modal = props.modal
-        this.text = props.text
+    initialize: function (init) {
+        this.modal = init.modal
+        this.text = init.text
     },
 
     display: function (message) {
@@ -365,7 +370,6 @@ let NavigationBar = {
 
     initialize: function (init) {
         this.navLinks = init.navLinks
-        this.settings = init.settings
 
         $(this.navLinks).click( (event) => {
             event.preventDefault();
@@ -374,15 +378,22 @@ let NavigationBar = {
                 $(href).modal();
             }
         })
+    }
+}
+
+let ModalIcon = {
+    
+    initialize: function (init) {
+        this.checkBox = init.checkBox
     },
 
-    initializeCheckbox: function (key, checked) {
-        let id = this.settings[key]
+    initCheckbox: function (key, checked) {
+        let id = this.checkBox[key]
         $(id).prop('checked', checked)
         $(id).change( function () {
             Dispatch({
                 action: 'CHANGE_SETTING',
-                message: { key: key, active: this.checked }
+                message: { key: key, value: this.checked }
             })
         })
     }

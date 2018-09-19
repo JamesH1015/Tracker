@@ -5,31 +5,19 @@
 
 let Application = {
 
-    initialize: function (init) {
-        this.page = init.page
-        this.menu = init.menu
-        this.note = init.note
+    initialize: function initialize (init) {
+        this.win = init.win
     },
 
-    start: function (func) { this.page.ready(func) }
-}
-
-let Dispatch = function (request) {
-    ProjectsList.action(request)
-    ViewsList.action(request)
-    ProjectItems.action(request)
-    Assemblies.action(request)
-    Parts.action(request)
-    UserProfile.action(request)
-    Settings.action(request)
+    start: function (func) { this.win.page.ready(func) }
 }
 
 let ProjectsList = {
 
     initialize: function (init) {
-        this.component = init.component
-        this.queryPATH = init.queryPATH
-        this.note = init.note
+        this.win = init.win
+        this.view = init.view
+        this.query = init.query
     },
 
     action: function (request) {
@@ -49,25 +37,25 @@ let ProjectsList = {
         }
     },
 
-    store: function (projectsARY) {
-        this.projects = projectsARY
-        this.component.render(this.projects)
+    store: function (items) {
+        this.projects = items
+        this.win.select.render(this.view, this.projects)
     },
 
-    queryServer: function (pathSTR) {
-        let queryOBJ = { find: null, sort: { proj_TAG: 1 } }
+    queryServer: function () {
+        let query = { find: null, sort: { proj_TAG: 1 } }
         let ajaxOBJ = {
-            method: 'GET', url: pathSTR,
-            data: queryOBJ, dataType: 'json'
+            method: 'GET', url: this.query.path,
+            data: query, dataType: 'json'
         }
-        $.ajax(ajaxOBJ).done( (resultsARY) => {
-            if (resultsARY != null) { this.store(resultsARY) }
+        $.ajax(ajaxOBJ).done( (results) => {
+            if (results != null) { this.store(results) }
             else {
-                this.note.display('ERROR: Projects not found.')
+                this.win.message.display('ERROR: Projects not found.')
             }
         })
         .fail( () => {
-            this.note.display('ERROR: Projects List AJAX request failed!')
+            this.win.message.display('ERROR: Projects List AJAX request failed!')
         })
     }
 }
@@ -75,17 +63,16 @@ let ProjectsList = {
 let ViewsList = {
 
     initialize: function (init) {
-        this.component = init.component
-        this.viewIDX = init.viewIDX
-        this.queryPATH = init.queryPATH
-        this.note = init.note
+        this.win = init.win
+        this.query = init.query
+        this.viewIDX = 0
     },
 
     action: function (request) {
         switch (request.action) {
 
         case 'QUERY_VIEWS_LIST':
-            this.queryServer(this.queryPATH)
+            this.queryServer()
             break
 
         case 'RETRIEVE_SELECTED_VIEW':
@@ -93,30 +80,29 @@ let ViewsList = {
 
         case 'DISPLAY_SELECTED_VIEW':
             this.viewIDX = request.message
-            //
             break
         }
     },
 
-    store: function (viewsARY) {
-        this.views = viewsARY
-        this.component.render(this.views)
+    store: function (items) {
+        this.views = items
+        this.win.select.render(this.views)
     },
 
-    queryServer: function (pathSTR) {
-        let queryOBJ = { find: null }
+    queryServer: function () {
+        let query = { find: null }
         let ajaxOBJ = {
-            method: 'GET', url: pathSTR,
-            data: queryOBJ, dataType: 'json'
+            method: 'GET', url: this.query.path,
+            data: query, dataType: 'json'
         }
-        $.ajax(ajaxOBJ).done( (resultsARY) => {
-            if (resultsARY != null) { this.store(resultsARY) }
+        $.ajax(ajaxOBJ).done( (results) => {
+            if (results != null) { this.store(results) }
             else {
-                this.note.display('ERROR: Views not found.')
+                this.win.message.display('ERROR: Views not found.')
             }
         })
         .fail( () => {
-            this.note.display('ERROR: Views List AJAX request failed!')
+            this.win.message.display('ERROR: Views List AJAX request failed!')
         })
     }
 }
@@ -141,6 +127,9 @@ let ProjectItems = {
             let id = request.message.id
             let type = request.message.type
             return this.ancestors[id][type]
+
+        case 'RETRIEVE_ALL_NODE_ITEMS':
+            return this.retrieveAllItems(request.message)
         }
     },
 
@@ -185,6 +174,24 @@ let ProjectItems = {
         })
     },
 
+    retrieveAllItems: function (nodeID) {
+        let items = this.ancestors[nodeID].leafs
+
+    //  Create new array instead of reference or shallow copy
+        let blankARY = []
+        let nodes = blankARY.concat(this.ancestors[nodeID].nodes)
+
+        while (nodes.length > 0) {
+            let nextNode = nodes.pop()
+            let nextNodeID = nextNode[this.idKEY]
+            let newItems = items.concat(this.ancestors[nextNodeID].leafs)
+            let newNodes = nodes.concat(this.ancestors[nextNodeID].nodes)
+            items = newItems
+            nodes = newNodes
+        }
+        return items
+    },
+
     queryServer: function (pathSTR, projectID) {
         let queryOBJ = { find: { proj_ID: projectID }, sort: null }
         let ajaxOBJ = {
@@ -209,6 +216,7 @@ let Assemblies = {
         this.component = init.component
         this.note = init.note
         this.view = init.view
+        this.settings = init.settings
     },
 
     action: function (request) {
@@ -239,7 +247,7 @@ let Assemblies = {
         this.now = { id: root[this.view.id], level: 0 }
 
         this.component.renderRoot(this.view, root)
-
+        
         Parts.action({
             action: 'DISPLAY_SELECTED_NODE_ITEMS',
             message: root[this.view.id]
@@ -314,9 +322,8 @@ let Assemblies = {
 let Parts = {
 
     initialize: function (init) {
-        this.component = init.component
+        this.win = init.win
         this.queryPATH = init.queryPATH
-        this.settings = init.settings
         this.currNodeID = ''
         this.prevNodeID = ''
         this.filter = {}
@@ -327,7 +334,11 @@ let Parts = {
         switch (request.action) {
 
         case 'QUERY_COLORS':
-            this.queryServer(this.queryPATH, request.message)
+            let schemaName = UserProfile.action({
+                action: 'RETRIEVE_SETTING',
+                message: 'colorsSchema'
+            })
+            this.queryServer(schemaName)
             break
 
         case 'DISPLAY_SELECTED_NODE_ITEMS':
@@ -355,11 +366,8 @@ let Parts = {
 
         case 'CHANGE_SETTING':
             let key = request.message.key
-            let active = request.message.active
-            if (key == this.settings.colorsActive) {
-                this.colors.active = active
-                this.displayView(this.items)
-            }
+            if (key == 'highlightRows') { this.displayView(this.items) }
+            if (key == 'showAll') { this.store(this.currNodeID) }
             break
         }
     },
@@ -370,61 +378,79 @@ let Parts = {
         this.currNodeID = nodeID
 
         if (this.prevNodeID != '') {
-            this.component.highlightNode(this.prevNodeID, 'off')
+            this.win.grid.highlightNode(this.prevNodeID, 'off')
         }
-        this.component.highlightNode(nodeID, 'on')
+        this.win.grid.highlightNode(nodeID, 'on')
 
-        this.items = ProjectItems.action({
-            action: 'RETRIEVE_NODE_ITEMS_BY_TYPE',
-            message: { id: nodeID, type: 'leafs' }
+        let retrieveAll = UserProfile.action({
+            action: 'RETRIEVE_SETTING',
+            message: 'itemsAll'
         })
+        if (retrieveAll) {
+            this.items = ProjectItems.action({
+                action: 'RETRIEVE_ALL_NODE_ITEMS',
+                message: nodeID
+            })
+        } else {
+            this.items = ProjectItems.action({
+                action: 'RETRIEVE_NODE_ITEMS_BY_TYPE',
+                message: { id: nodeID, type: 'leafs' }
+            })
+        }
 
         this.displayView(this.items)
     },
 
     storeColors: function (schema) {
-        let colorsActive = Settings.action({
-            action: 'RETRIEVE_SETTING',
-            message: this.settings.colorsActive
-        })
         this.colors = {
-            active: colorsActive,
+            active: null,
             key: 'status_STR',
             schema: schema
         }
     },
 
     displayView: function(items) {
+        this.updateSettings()
         let view = ViewsList.action({
             action: 'RETRIEVE_SELECTED_VIEW',
             message: null
         })
-        this.component.renderHead(view)
-        this.component.renderBody(view, items, this.filter, this.colors)
+        this.win.grid.renderHead(view)
+        this.win.grid.renderBody(view, items, this.filter, this.colors)
     },
 
     displayFilter: function (items) {
+        this.updateSettings()
         let view = ViewsList.action({
             action: 'RETRIEVE_SELECTED_VIEW',
             message: null
         })
-        this.component.renderBody(view, items, this.filter, this.colors)
+        this.win.grid.renderBody(view, items, this.filter, this.colors)
     },
 
-    queryServer: function (pathSTR, schemaName) {
-        let queryOBJ = { find: schemaName }
+    updateSettings: function () {
+        let colorsActive = UserProfile.action({
+            action: 'RETRIEVE_SETTING',
+            message: 'colorsActive'
+        })
+
+        this.colors.active = colorsActive
+    },
+
+    queryServer: function (schemaName) {
+        let query = { find: { schema: schemaName } }
         let ajaxOBJ = {
-            method: 'GET', url: pathSTR,
-            data: queryOBJ, dataType: 'json'
+            method: 'GET', url: this.queryPATH,
+            data: query, dataType: 'json'
         }
         $.ajax(ajaxOBJ).done( (results) => {
             if (results != null) { this.storeColors(results) }
             else {
-                this.note.display('ERROR: Colors not found.')
+                this.win.message.display('ERROR: Colors not found.')
             }
         })
         .fail( () => {
-            this.note.display('ERROR: Colors List AJAX request failed!')
+            this.win.message.display('ERROR: Colors List AJAX request failed!')
         })
     }
 }
@@ -432,8 +458,9 @@ let Parts = {
 let UserProfile = {
 
     initialize: function (init) {
-        this.signIn = init.signIn
-        this.queryPATH = init.queryPATH
+        this.win = init.win
+        this.query = init.query
+        this.view = init.view
     },
 
     action: function (request) {
@@ -443,22 +470,31 @@ let UserProfile = {
             this.authenticateUser(request.message)
             break
 
-        case 'RETRIEVE_PROPERTY':
-            let val = sessionStorage.getItem(request.message)
-            if (val == 'true') { val = true }
-            if (val == 'false') { val = false }
-            return val
+        case 'LOAD_PROFILE':
+            this.load()
+            break
+
+        case 'CHANGE_SETTING':
+            let key = request.message.key
+            let value = request.message.value
+            for (setting in this.view) {
+                let name = this.view[setting].name
+                if (name == key) { this.profile.set[setting] = value }
+            }
+
+        case 'RETRIEVE_SETTING':
+            return this.profile.set[request.message]
         }
     },
 
     authenticateUser: function (credentials) {
         if (credentials.username == '') {
-            this.note.display('Missing information. Enter username.')
+            this.win.message.display('Missing information. Enter username.')
         }
         else if (credentials.password == '') {
-            this.note.display('Missing information. Enter password.')
+            this.win.message.display('Missing information. Enter password.')
         }
-        else { this.queryServer(this.queryPATH, credentials) }
+        else { this.queryServer(credentials) }
     },
 
     store: function (result) {
@@ -467,68 +503,65 @@ let UserProfile = {
             sessionStorage.setItem('forename', result.forename)
             sessionStorage.setItem('surname', result.surname)
             sessionStorage.setItem('group', result.group)
-            sessionStorage.setItem('colorsActive', result.profile.colors.active)
-            sessionStorage.setItem('colorsSchema', result.profile.colors.schema)
+            sessionStorage.setItem('colorsActive', result.profile.colorsActive)
+            sessionStorage.setItem('colorsSchema', result.profile.colorsSchema)
+            sessionStorage.setItem('itemsAll', result.profile.itemsAll)
             sessionStorage.setItem('admin', result.admin)
             this.requestPage(result.path)
         } else {
-            this.note.display('ERROR: Invalid credentials.')
+            this.win.message.display('ERROR: Invalid credentials.')
         }
     },
 
-    requestPage: function (pathSTR) {
-        window.open(pathSTR, '_self')
+    load: function () {
+        this.profile = {
+            bio: {
+                username: this.retrieve('username'),
+                forename: this.retrieve('forename'),
+                surname: this.retrieve('surname'),
+                group: this.retrieve('group'),
+                admin: this.retrieve('admin'),
+            },
+            set: {
+                colorsActive:this.retrieve('colorsActive'),
+                colorsSchema: this.retrieve('colorsSchema'),
+                itemsAll: this.retrieve('itemsAll')
+            }
+        }
+        this.initializeIcon(this.profile.set)
     },
 
-    queryServer: function (pathSTR, cred) {
-        let queryOBJ = {
+    retrieve: function (prop) {
+        let value = sessionStorage.getItem(prop)
+        if (value == 'true') { value = true }
+        if (value == 'false') { value = false }
+        return value
+    },
+
+    initializeIcon: function (settings) {
+        for (key in settings) {
+            if (this.view[key].type == 'checkbox') {
+                this.win.icon.initCheckbox(this.view[key].name, settings[key])
+            }
+        }
+    },
+
+    requestPage: function (path) {
+        this.win.page.open(path, '_self')
+    },
+
+    queryServer: function (cred) {
+        let query = {
             find: { user_TAG: cred.username, auth_STR: cred.password },
             sort: null
         }
         let ajaxOBJ = {
-            method: 'GET', url: pathSTR,
-            data: queryOBJ, dataType: 'json'
+            method: 'GET', url: this.query.path,
+            data: query, dataType: 'json'
         }
-        $.ajax(ajaxOBJ).done( (resultOBJ) => {
-            this.store(resultOBJ)
-        })
+        $.ajax(ajaxOBJ).done( (result) => { this.store(result) })
         .fail( () => {
-            this.note.display('ERROR: User Profile AJAX request failed!')
+            this.win.message.display('ERROR: User Profile AJAX request failed!')
         })
-    }
-}
-
-let Settings = {
-
-    initialize: function (init) {
-        this.component = init.component
-        this.settings = init.settings
-    },
-
-    action: function (request) {
-        switch (request.action) {
-
-        case 'INITIALIZE_MENU':
-            this.initializeMenu(request.message)
-            break
-
-        case 'CHANGE_SETTING':
-            let key = request.message.key
-            let active = request.message.active
-            this.settings[key] = active
-            break
-
-        case 'RETRIEVE_SETTING':
-            return this.settings[request.message]
-        }
-    },
-
-    initializeMenu: function (userSettings) {
-        for (key in userSettings) {
-            if (key in this.settings) {
-                this.settings[key] = userSettings[key]
-                this.component.initializeCheckbox(key, userSettings[key])
-            }
-        }
     }
 }

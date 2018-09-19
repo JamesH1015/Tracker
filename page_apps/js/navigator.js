@@ -3,98 +3,92 @@
  *  Copyright 2018 James Houck, REI Automation, Inc. All rights reserved.
  */
 
-/** Menu **/
-let MenuCP = Object.create(NavigationBar)
+/** Application Initialization **/
+let Page = Object.create(HTMLDoc)
 
-    MenuCP.initialize({
-        navLinks: '.navbar-brand, .nav-link',
-        settings: {
-            highlightRows: '#check-highlight-rows'
-        }
+let Menu = Object.create(NavigationBar)
+
+    Menu.initialize({
+        navLinks: '.navbar-brand, .nav-link'
     })
 
-    Settings.initialize({
-        component: MenuCP,
-        settings: {
-            highlightRows: null
-        }
-    })
+let Message = Object.create(ModalMessage)
 
-/** Message **/
-let NotificationCP = Object.create(ModalMessage)
-
-    NotificationCP.initialize({
+    Message.initialize({
         modal: '#modal-message',
         text: '#modal-message-text'
     })
 
-/** Application Initialization **/
-let PageCP = Object.create(Page)
-
     Application.initialize({
-        page: PageCP,
-        menu: MenuCP,
-        note: NotificationCP
+        win: { page: Page, menu: Menu, message: Message }
     })
 
     Application.start( function () {
 
-        Dispatch({
+        UserProfile.action({
+            action: 'LOAD_PROFILE',
+            message: null
+        })
+
+        ProjectsList.action({
             action: 'QUERY_PROJECTS_LIST',
             message: null
         })
     
-        Dispatch({
+        ViewsList.action({
             action: 'QUERY_VIEWS_LIST',
             message: null
         })
 
-        let schemaName = UserProfile.action({
-            action: 'RETRIEVE_PROPERTY',
-            message: 'colorsSchema'
-        })
-
         Parts.action({
             action: 'QUERY_COLORS',
-            message: { schema: schemaName }
-        })
-
-        let highlightRowsActive = UserProfile.action({
-            action: 'RETRIEVE_PROPERTY',
-            message: 'colorsActive'
-        })
-
-        Settings.action({
-            action: 'INITIALIZE_MENU',
-            message: { highlightRows: highlightRowsActive }
+            message: null
         })
     })
 
-/** Projects List **/
-let ProjectSelectorCP = Object.create(ProjectSelector)
+/** UserProfile **/
+let Icon = Object.create(ModalIcon)
 
-    ProjectSelectorCP.initialize({
+    Icon.initialize({
+        checkBox: {
+            highlightRows: '#check-highlight-rows',
+            showAll: '#check-show-all'
+        }
+    })
+
+    UserProfile.initialize({
+        win: { icon: Icon },
+        query: { path: '/navigator/users' },
+        view: {
+            colorsActive: { name: 'highlightRows', type: 'checkbox' },
+            colorsSchema: { name: '', type: '' },
+            itemsAll: { name: 'showAll', type: 'checkbox' }
+        }
+    })
+
+/** Projects List **/
+let ProjectSelector = Object.create(ProjectSelect)
+
+    ProjectSelector.initialize({
         selectID: '#select-project'
     })
 
     ProjectsList.initialize({
-        component: ProjectSelectorCP,
-        queryPATH: '/navigator/projects',
-        note: Application.note
+        win: { select: ProjectSelector, message: Message },
+        query: { path: '/navigator/projects' },
+        view: { id: '_id', name: 'proj_TAG', desc: 'cust_TAG' }
     })
 
 /** Views List **/
-let ViewSelectorCP = Object.create(ViewSelector)
+let ViewSelector = Object.create(ViewSelect)
 
-    ViewSelectorCP.initialize({
+    ViewSelect.initialize({
         selectID: '#select-view'
     })
 
     ViewsList.initialize({
-        component: ViewSelectorCP,
-        viewIDX: 0,
-        queryPATH: '/navigator/views',
-        note: Application.note
+        win: { select: ViewSelector, message: Message },
+        query: { path: '/navigator/views' }
     })
 
 /** Project Items **/
@@ -106,8 +100,8 @@ let ViewSelectorCP = Object.create(ViewSelector)
     })
 
 /** Project Assemblies in Side Bar **/
-let SideBarCP = Object.create(SideBarGroup)
-    SideBarCP.initialize({
+let SideBar = Object.create(SideBarGroup)
+    SideBar.initialize({
         listID: '#sidebar',
         circleIcon: 'img/circle.png',
         closedIcon: 'img/closed.png',
@@ -115,22 +109,29 @@ let SideBarCP = Object.create(SideBarGroup)
     })
 
     Assemblies.initialize({
-        component: SideBarCP,
+        component: SideBar,
         view: { id: '_id', name: 'part_TAG', desc: 'dscr_STR' }
     })
 
 /** Project Parts in Grid Model **/
-let PartsGridCP = Object.create(DataGrid)
-    PartsGridCP.initialize({
+let PartsGrid = Object.create(DataGrid)
+    PartsGrid.initialize({
         headID: '#grid-header',
         bodyID: '#grid-body',
         filterClearBtn: '#btn-filter-clear'
     })
 
     Parts.initialize({
-        component: PartsGridCP,
-        queryPATH: '/navigator/colors',
-        settings: {
-            colorsActive: 'highlightRows'
-        }
+        win: { grid: PartsGrid, message: Message },
+        queryPATH: '/navigator/colors'
     })
+
+/** Dispatch **/
+let Dispatch = function (request) {
+    UserProfile.action(request)
+    ProjectsList.action(request)
+    ViewsList.action(request)
+    ProjectItems.action(request)
+    Assemblies.action(request)
+    Parts.action(request)
+}
