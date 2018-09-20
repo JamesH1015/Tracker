@@ -22,11 +22,11 @@ let ProjectsList = {
 
     action: function (request) {
         switch (request.action) {
-        
+
         case 'QUERY_PROJECTS_LIST':
             this.queryServer(this.queryPATH)
             break
-        
+
         case 'DISPLAY_SELECTED_PROJECT':
             this.projectID = request.message
             Dispatch({
@@ -118,7 +118,7 @@ let ProjectItems = {
 
     action: function (request) {
         switch (request.action) {
-        
+
         case 'QUERY_PROJECT_DATA':
             this.queryServer(this.queryPATH, request.message)
             break
@@ -225,7 +225,7 @@ let Assemblies = {
         case 'DISPLAY_ROOT_ITEMS':
             this.store(request.message)
             break
-        
+
         case 'DISPLAY_SELECTED_NODE_ITEMS':
             this.updateRecent(request.message)
             break
@@ -247,7 +247,7 @@ let Assemblies = {
         this.now = { id: root[this.view.id], level: 0 }
 
         this.component.renderRoot(this.view, root)
-        
+
         Parts.action({
             action: 'DISPLAY_SELECTED_NODE_ITEMS',
             message: root[this.view.id]
@@ -262,7 +262,7 @@ let Assemblies = {
         this.old.level = this.now.level
         this.now.id = nodeID
         this.now.level = this.nodes[nodeID].level
-        
+
         if (this.now.level > this.old.level) {
             this.displayNodes(this.now.id, this.now.level)
             this.nodes[this.now.id].active = true
@@ -302,7 +302,7 @@ let Assemblies = {
     closeNodes: function (nodeLevel) {
         let minLevel = 2
         if (nodeLevel != 0) { minLevel = nodeLevel + 1 }
-        
+
         for (key in this.nodes) {
             let level = this.nodes[key].level
             if (level >= minLevel) {
@@ -465,7 +465,7 @@ let UserProfile = {
 
     action: function (request) {
         switch (request.action) {
-        
+
         case 'AUTHENTICATE_USER':
             this.authenticateUser(request.message)
             break
@@ -542,6 +542,10 @@ let UserProfile = {
         for (key in settings) {
             if (this.view[key].type == 'checkbox') {
                 this.win.icon.initCheckbox(this.view[key].name, settings[key])
+            }
+            if (this.view[key].type == 'select') {
+                let items = [settings[key]]
+                this.win.icon.initSelect(this.view[key].name, items)
             }
         }
     },

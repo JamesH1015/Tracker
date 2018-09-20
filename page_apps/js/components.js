@@ -56,7 +56,7 @@ let ViewSelect = {
         this.append(this.selectID, items)
         this.activate(this.selectID)
     },
-    
+
     append: function (selectID, items) {
         for (let idx = 0; idx < items.length; idx++) {
             let name = items[idx].name
@@ -233,7 +233,7 @@ let DataGrid = {
         }
         frag.appendChild(row)
         $(id).append(frag)
-    
+
     //  Keyup event
         $('.filter').keyup( () => {
             let inputs = {}
@@ -259,7 +259,7 @@ let DataGrid = {
     //  Create fragment
         let frag = document.createDocumentFragment()
         for (let idx = 0; idx < rows.length; idx++) {
-        
+
         //  Create row
             let row = document.createElement('div')
             row.id = rows[idx][rowAttr.id]
@@ -271,7 +271,7 @@ let DataGrid = {
                     row.style.background = colors.schema[rows[idx][colors.key]]
                 }
             }
-    
+
         //  Create row columns
             let filterRowMatch = true  // Set filter row match condition
             for (let idy = 0; idy < columns.length; idy++) {
@@ -382,9 +382,10 @@ let NavigationBar = {
 }
 
 let ModalIcon = {
-    
+
     initialize: function (init) {
         this.checkBox = init.checkBox
+        this.select = init.select
     },
 
     initCheckbox: function (key, checked) {
@@ -396,5 +397,14 @@ let ModalIcon = {
                 message: { key: key, value: this.checked }
             })
         })
+    },
+
+    initSelect: function (key, items) {
+        let id = this.select[key]
+        for (let idx = 0; idx < items.length; idx++) {
+            let name = items[idx]
+            let option = `<option value="${idx}">${name}</option>`
+            $(id).append(option)
+        }
     }
 }

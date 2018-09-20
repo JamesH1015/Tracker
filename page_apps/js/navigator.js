@@ -34,7 +34,7 @@ let Message = Object.create(ModalMessage)
             action: 'QUERY_PROJECTS_LIST',
             message: null
         })
-    
+
         ViewsList.action({
             action: 'QUERY_VIEWS_LIST',
             message: null
@@ -53,6 +53,9 @@ let Icon = Object.create(ModalIcon)
         checkBox: {
             highlightRows: '#check-highlight-rows',
             showAll: '#check-show-all'
+        },
+        select: {
+            selectColorScheme: '#select-highlight-schema'
         }
     })
 
@@ -61,7 +64,7 @@ let Icon = Object.create(ModalIcon)
         query: { path: '/navigator/users' },
         view: {
             colorsActive: { name: 'highlightRows', type: 'checkbox' },
-            colorsSchema: { name: '', type: '' },
+            colorsSchema: { name: 'selectColorScheme', type: 'select' },
             itemsAll: { name: 'showAll', type: 'checkbox' }
         }
     })
