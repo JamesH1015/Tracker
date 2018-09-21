@@ -135,3 +135,28 @@
         db.get(api).then( (results) => {  res.json(results) })
           .catch( (err) => { res.send(err) })
     })
+
+//  PUT Resource
+    ws.put('/:app/:coll', function (req, res) {
+        let api = {
+            app: req.params.app,
+            coll: req.params.coll,
+            update: req.body.update,
+            user: req.user.name
+        }
+        db.put(api).then( (results) => { res.json(results) })
+          .catch( (err) => { res.send(err) })
+    })
+
+//  POST Resource
+    ws.post('/:app/:coll', function (req, res) {
+        let api = {
+            app: req.params.app,
+            coll: req.params.coll,
+            insert: req.body.insert,
+            user: req.user.name
+        }
+        console.log(api)
+        db.post(api).then( (results) => { res.json(results) })
+          .catch( (err) => { res.send(err) })
+    })

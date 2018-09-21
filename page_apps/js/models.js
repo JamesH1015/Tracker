@@ -34,6 +34,9 @@ let ProjectsList = {
                 message: this.projectID
             })
             break
+
+        case 'RETRIEVE_PROJECT_ID':
+            return this.projectID
         }
     },
 
@@ -229,6 +232,9 @@ let Assemblies = {
         case 'DISPLAY_SELECTED_NODE_ITEMS':
             this.updateRecent(request.message)
             break
+
+        case 'RETRIEVE_PARENT_ID':
+            return this.now.id
         }
     },
 
@@ -323,11 +329,13 @@ let Parts = {
 
     initialize: function (init) {
         this.win = init.win
-        this.queryPATH = init.queryPATH
+        this.query = init.query
+
         this.currNodeID = ''
         this.prevNodeID = ''
         this.filter = {}
         this.colors = {}
+        this.blankRowIndex = 0
     },
 
     action: function (request) {
@@ -368,6 +376,10 @@ let Parts = {
             let key = request.message.key
             if (key == 'highlightRows') { this.displayView(this.items) }
             if (key == 'showAll') { this.store(this.currNodeID) }
+            break
+
+        case 'INSERT_BLANK_ROW':
+            this.insertBlankRow()
             break
         }
     },
@@ -428,6 +440,15 @@ let Parts = {
         this.win.grid.renderBody(view, items, this.filter, this.colors)
     },
 
+    insertBlankRow: function () {
+        let view = ViewsList.action({
+            action: 'RETRIEVE_SELECTED_VIEW',
+            message: null
+        })
+        this.win.grid.insert(view, this.blankRowIndex)
+        this.blankRowIndex = this.blankRowIndex + 1
+    },
+
     updateSettings: function () {
         let colorsActive = UserProfile.action({
             action: 'RETRIEVE_SETTING',
@@ -440,7 +461,7 @@ let Parts = {
     queryServer: function (schemaName) {
         let query = { find: { schema: schemaName } }
         let ajaxOBJ = {
-            method: 'GET', url: this.queryPATH,
+            method: 'GET', url: this.query.path,
             data: query, dataType: 'json'
         }
         $.ajax(ajaxOBJ).done( (results) => {
@@ -451,6 +472,115 @@ let Parts = {
         })
         .fail( () => {
             this.win.message.display('ERROR: Colors List AJAX request failed!')
+        })
+    }
+}
+
+let PartsEditor = {
+
+    initialize: function (init) {
+        this.win = init.win
+        this.query = init.query
+
+        this.edits = []
+        this.errors = []
+        this.active = false
+    },
+
+    action: function (request) {
+        switch (request.action) {
+
+        case 'STORE_EDIT':
+            this.edits.push(request.message)
+            this.active = true
+            break
+
+        case 'STORE_ERROR':
+            this.errors.push(request.message)
+            break
+
+        case 'SAVE_EDITS':
+            console.log(this.edits)
+            console.log(this.errors)
+            this.saveEdits(this.edits)
+            break
+        }
+    },
+
+    saveEdits: function (edits) {
+        let update = []
+        let insert = []
+        for (let idx = 0; idx < edits.length; idx++) {
+            let id = edits[idx].id
+            let field = edits[idx].field
+            let value = edits[idx].value
+            let type = edits[idx].type
+            let text = edits[idx].text
+            let idARY = id.split('-')
+            if (idARY[0] == 'new') {
+                let idx = idARY[1]
+                if (typeof insert[idx] === 'undefined') { insert[idx] ={} }
+                insert[idx][field] = value
+            } else {
+                let updateItem = { _id: id, type: type, prev: text, set: {} }
+                updateItem.set[field] = value
+                update.push(updateItem)
+            }
+        }
+        console.log(insert)
+        console.log(update)
+        if (insert.length > 0) {
+            for (let idx = 0; idx < insert.length; idx++) {
+
+                let projID = ProjectsList.action({
+                        action: 'RETRIEVE_PROJECT_ID',
+                        message: null
+                    })
+
+                let parentID = Assemblies.action({
+                        action: 'RETRIEVE_PARENT_ID',
+                        message:  null
+                    })
+
+                insert[idx].proj_ID = projID
+                insert[idx].parent_ID = parentID
+            }
+            this.insertServer(insert)
+        }
+        if (update.length > 0) { this.updateServer(update) }
+    },
+
+    updateServer: function (update) {
+        let query = { update: update }
+        let ajaxOBJ = {
+            method: 'PUT', url: this.query.path,
+            data: query, dataType: 'json'
+        }
+        $.ajax(ajaxOBJ).done( (results) => {
+            if (results != null) { console.log(results) }
+            else {
+                this.win.message.display('ERROR: Parts Editor Update failed.')
+            }
+        })
+        .fail( () => {
+            this.win.message.display('ERROR: Parts Editor AJAX request failed!')
+        })
+    },
+
+    insertServer: function (insert) {
+        let query = { insert: insert }
+        let ajaxOBJ = {
+            method: 'POST', url: this.query.path,
+            data: query, dataType: 'json'
+        }
+        $.ajax(ajaxOBJ).done( (results) => {
+            if (results != null) { console.log(results) }
+            else {
+                this.win.message.display('ERROR: Parts Editor Insert failed.')
+            }
+        })
+        .fail( () => {
+            this.win.message.display('ERROR: Parts Editor AJAX request failed!')
         })
     }
 }

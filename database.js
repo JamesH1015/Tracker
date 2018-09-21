@@ -52,3 +52,102 @@
             })
         })
     }
+
+/** MongoDB updateOne Function **/
+    exports.put = function (api) {
+        if (api.update == '') { api.update = [] }
+
+    //  Create new promise object
+        return new Promise((resolve, reject) => {
+
+        //  Connect to Mongodb database
+            Mongo.connect(dbPath, (err, client) => {
+                if (err) { return reject(err) }
+
+            //  Set database collection
+                let db = client.db(dbName)
+                let cl = db.collection(api.coll)
+
+            //  Create bulk object
+                let bulk = cl.initializeUnorderedBulkOp();
+                for (let idx = 0; idx < api.update.length; idx++) {
+
+                //  Convert Id String to Object
+                    let id = ObjectId(api.update[idx]._id)
+
+                //  Parse set values from strings into types
+                    let set = api.update[idx].set
+                    for (key in set) {
+                        let val = parse(api.update[idx].type, api.update[idx].set[key])
+                        api.update[idx].set[key] = val
+                    }
+
+                //  Insert Timestamp
+                    set.update_TS = new Date()
+                    set.update_TAG = api.user
+
+                    bulk.find({_id: id}).updateOne({ $set: set })
+                }
+            //  Update Documents
+                bulk.execute((err, result) => {
+                    if (err) { return reject(err) }
+                    client.close()
+                    return resolve(result)
+                })
+            })
+        })
+    }
+
+/** MongoDB insertMany Function **/
+    exports.post = function (api) {
+        if (api.insert == '') { api.insert = [] }
+        for (let idx = 0; idx < api.insert.length; idx++) {
+
+        //  Convert ID Strings to Objects
+            api.insert[idx].proj_ID = ObjectId(api.insert[idx].proj_ID)
+            api.insert[idx].parent_ID = ObjectId(api.insert[idx].parent_ID)
+
+        //  Parse set values from strings into types
+            //for (key in api.insert[idx]) {
+            //    let val = parse(api.insert[idx].type, api.insert[idx][key])
+            //    api.insert[idx][key] = val
+            //}
+
+        //  Update Timestamp
+            api.insert[idx].insert_TS = new Date()
+            api.insert[idx].insert_TAG = api.user
+
+            console.log(api.insert[idx])
+        }
+
+    //  Create new promise object
+        return new Promise((resolve, reject) => {
+
+        //  Connect to Mongodb database
+            Mongo.connect(dbPath, (err, client) => {
+                if (err) { return reject(err) }
+
+            //  Set database collection
+                let db = client.db(dbName)
+                let cl = db.collection(api.coll)
+
+            //  Insert documents
+                cl.insertMany(api.insert, (err, result) => {
+                    if (err) { return reject(err) }
+                    client.close()
+                    return resolve(result)
+                })
+            })
+        })
+    }
+
+function parse (type, value) {
+    switch (type) {
+    case 'string':
+        return value
+    case 'number':
+        return Number(value)
+    case 'date':
+        return value
+    }
+}

@@ -308,6 +308,28 @@ let DataGrid = {
         }
     },
 
+    insert: function (view, index) {
+        let rowAttr = view.attributes
+        let columns = view.columns
+
+        let row = document.createElement('div')
+        row.id = `new-${index}`
+        row.className = 'row grid-row border border-top-0'
+
+        for (let idy = 0; idy < columns.length; idy++) {
+            let colAttr = columns[idy]
+            let col = document.createElement('div')
+            col.className = `col-${colAttr.width} data`
+            col.setAttribute('data-field', colAttr.field)
+            col.setAttribute('data-type', colAttr.dtype)
+            col.contentEditable = colAttr.edit
+            let text = ''
+            col.textContent = text
+            row.appendChild(col)
+        }
+        $(this.bodyID).prepend(row)
+    },
+
     formatData: function (data, type) {
         if (data != undefined) {
             switch (type) {
@@ -325,6 +347,152 @@ let DataGrid = {
                 return dateSTR = month + '-' + date + '-' + year
             }
         } else { return '' }
+    }
+}
+
+let GridEdit = {
+
+    initialize: function (init) {
+        this.bodyID = init.bodyID
+        this.insertBtn = init.insertBtn
+        this.saveBtn = init.saveBtn
+
+        this.item = { id: '', field: '', type: '', text: '' }
+        this.input = { text:'', active: false }
+        this.save = { active: false }
+        this.edit = {}
+
+        this.activateButtons(this.insertBtn, this.saveBtn)
+        this.activateGrid(this.bodyID)
+    },
+
+    activateGrid: function (id) {
+
+    //  Edit Field Focusin Event
+        $(id).focusin( (event) => {
+            $(event.target).css('outline-color', '#0000FF')
+            this.item.id = $(event.target).parent().attr('id')
+            this.item.field = $(event.target).attr('data-field')
+            this.item.type = $(event.target).attr('data-type')
+            this.item.text = $(event.target).text()
+            this.input = { text:'', active: false }
+            this.edit = {}
+        })
+
+    //  Edit Field Keyup Event
+        $(id).keyup( (event) => {
+            $(event.target)
+            .css({ 'background-color': '#FFFF66', 'color': '#000000' });
+            this.input.text = $(event.target).text();
+            if (!this.input.active) {
+                this.edit.id = this.item.id
+                this.edit.field = this.item.field
+                this.edit.type = this.item.type
+                this.edit.text = this.item.text
+                this.input.active = true
+                this.enableSave()
+            }
+        })
+
+    //  Edit Field Focusout Event
+        $(id).focusout( (event) => {
+            if (this.input.active) { this.testInput() }
+            this.input.active = false
+        })
+    },
+
+    testInput: function () {
+        let test = this.validate(this.input.text, this.item.type)
+        if (test.valid) {
+            $(event.target)
+            .css({ 'background-color': '#00FF00', 'color': '#000000' })
+            this.edit.input = this.input.text
+            this.edit.value = test.value
+            Dispatch({
+                action: 'STORE_EDIT',
+                message: this.edit
+            })
+        } else {
+            $(event.target)
+            .css({ 'background-color': '#FF0000', 'color': '#000000' })
+            this.edit.input = this.input.text
+            this.edit.value = test.value
+            Dispatch({
+                action: 'STORE_ERROR',
+                message: this.edit
+            })
+        }
+    },
+
+    activateButtons: function (insertID, saveID) {
+        $(insertID).click( () => {
+            Dispatch({
+                action: 'INSERT_BLANK_ROW',
+                message: null
+            })
+        })
+        $(saveID).click( () => {
+            if (this.save.active) {
+                if (this.input.active) { this.testInput() }
+                Dispatch({
+                    action: 'SAVE_EDITS',
+                    message: null
+                })
+            }
+        })
+    },
+
+    enableSave: function () {
+        this.save.active = true
+        $(this.saveBtn).prop("disabled", false)
+        $(this.saveBtn).removeClass('btn-secondary').addClass('btn-danger')
+    },
+
+    disableSave: function () {
+        this.save.active = false
+        $(this.saveBtn).prop("disabled", true)
+        $(this.saveBtn).removeClass('btn-danger').addClass('btn-secondary')
+    },
+
+    validate: function (data, type) {
+        switch (type) {
+        case 'string':
+            return { valid: true, value: data }
+            break
+        case 'number':
+            let regExp1 = /^[-+]?[0-9]{1,3}(?:,?[0-9]{3})*\.?[0-9]+$/
+            let test1 = regExp1.test(data)
+            if (test1) {
+                let newData = parseFloat(data.replace(/,/g, ''))
+                return { valid: test1, value: newData }
+            } else { return { valid: test1, value: null } }
+            break
+        case 'currency':
+            let regExp2 = /^[-+]?[0-9]{1,3}(?:,?[0-9]{3})*\.?[0-9]+$/
+            let test2 = regExp2.test(data)
+            if (test2) {
+                let newData = parseFloat(data.replace(/,/g, '')).toFixed(4)
+                return { valid: test2, value: newData }
+            } else { return { valid: test2, value: null } }
+            break
+        case 'date':
+            var regExp3 = /^(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])-(?:[0-9]{2})?[0-9]{2}$/;
+            var regExp4 = /^(1[0-2]|0?[1-9])\/(3[01]|[12][0-9]|0?[1-9])\/(?:[0-9]{2})?[0-9]{2}$/;
+            let test3 = (regExp3.test(data)) || (regExp4.test(data))
+            if (test3) {
+                let strARY = [ ]
+                if (/-/.test(data)) { strARY = data.split('-') }
+                if (/\//.test(data)) { strARY = data.split('/') }
+                let month = parseInt(strARY[0] - 1)
+                let date = parseInt(strARY[1])
+                let year = ''
+                if (strARY[2].length === 2) { year = parseInt('20' + strARY[2]) }
+                else { year = parseInt(strARY[2]) }
+                let newData = new Date(year, month, date).getTime()
+                return { valid: test3, value: newData }
+            } else { return { valid: test3, value: null } }
+            break
+        }
     }
 }
 

@@ -126,7 +126,19 @@ let PartsGrid = Object.create(DataGrid)
 
     Parts.initialize({
         win: { grid: PartsGrid, message: Message },
-        queryPATH: '/navigator/colors'
+        query: { path: '/navigator/colors' }
+    })
+
+let PartsEdit = Object.create(GridEdit)
+    PartsEdit.initialize({
+        bodyID: '#grid-body',
+        insertBtn: '#btn-insert',
+        saveBtn: '#btn-save'
+    })
+
+    PartsEditor.initialize({
+        win: { edit: PartsEdit, message: Message },
+        query: { path: '/navigator/parts' }
     })
 
 /** Dispatch **/
@@ -137,4 +149,5 @@ let Dispatch = function (request) {
     ProjectItems.action(request)
     Assemblies.action(request)
     Parts.action(request)
+    PartsEditor.action(request)
 }
