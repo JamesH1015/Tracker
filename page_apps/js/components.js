@@ -460,7 +460,7 @@ let GridEdit = {
             return { valid: true, value: data }
             break
         case 'number':
-            let regExp1 = /^[-+]?[0-9]{1,3}(?:,?[0-9]{3})*\.?[0-9]+$/
+            let regExp1 = /^[-+]?\d+(\.\d+)?$/
             let test1 = regExp1.test(data)
             if (test1) {
                 let newData = parseFloat(data.replace(/,/g, ''))

@@ -18,25 +18,32 @@ let ProjectsList = {
         this.win = init.win
         this.view = init.view
         this.query = init.query
+        this.projects = []
+        this.project = {}
     },
 
     action: function (request) {
         switch (request.action) {
 
         case 'QUERY_PROJECTS_LIST':
-            this.queryServer(this.queryPATH)
+            this.queryServer()
             break
 
         case 'DISPLAY_SELECTED_PROJECT':
-            this.projectID = request.message
+            this.project.id = request.message
+            for (let idx = 0; idx < this.projects.length; idx++) {
+                if (this.projects[idx]._id == this.project.id) {
+                  this.project.info = this.projects[idx]
+                }
+            }
             Dispatch({
                 action: 'QUERY_PROJECT_DATA',
-                message: this.projectID
+                message: this.project.id
             })
             break
 
-        case 'RETRIEVE_PROJECT_ID':
-            return this.projectID
+        case 'RETRIEVE_PROJECT':
+            return this.project
         }
     },
 
@@ -133,6 +140,9 @@ let ProjectItems = {
 
         case 'RETRIEVE_ALL_NODE_ITEMS':
             return this.retrieveAllItems(request.message)
+
+        case 'RETRIEVE_NODE_INFO':
+            break
         }
     },
 
@@ -233,16 +243,20 @@ let Assemblies = {
             this.updateRecent(request.message)
             break
 
-        case 'RETRIEVE_PARENT_ID':
-            return this.now.id
+        case 'RETRIEVE_PARENT':
+            let id = this.now.id
+            let name = this.nodes[id].name
+            return { id: id, name: name }
         }
     },
 
     store: function (rootITEM) {
 
         this.rootID = rootITEM[this.view.id]
+        let rootName = rootITEM[this.view.name]
+
         this.nodes = {}
-        this.nodes[this.rootID] = { active: true, level: 0 }
+        this.nodes[this.rootID] = { name: rootName, active: true, level: 0 }
 
         this.displayRoot(rootITEM)
     },
@@ -297,7 +311,8 @@ let Assemblies = {
 
             for (let idx = 0; idx < items.length; idx++) {
                 let itemID = items[idx][this.view.id]
-                this.nodes[itemID] = { active: false, level: subLevel }
+                let itemName = items[idx][this.view.name]
+                this.nodes[itemID] = { name: itemName, active: false, level: subLevel }
             }
 
             this.component.toggleArrows(nodeID, 'open')
@@ -522,28 +537,31 @@ let PartsEditor = {
                 if (typeof insert[idx] === 'undefined') { insert[idx] ={} }
                 insert[idx][field] = value
             } else {
-                let updateItem = { _id: id, type: type, prev: text, set: {} }
+                let updateItem = { _id: id, set: {} }
                 updateItem.set[field] = value
                 update.push(updateItem)
             }
         }
-        console.log(insert)
-        console.log(update)
+
         if (insert.length > 0) {
             for (let idx = 0; idx < insert.length; idx++) {
 
-                let projID = ProjectsList.action({
-                        action: 'RETRIEVE_PROJECT_ID',
+                let project = ProjectsList.action({
+                        action: 'RETRIEVE_PROJECT',
                         message: null
                     })
 
-                let parentID = Assemblies.action({
-                        action: 'RETRIEVE_PARENT_ID',
+                let parent = Assemblies.action({
+                        action: 'RETRIEVE_PARENT',
                         message:  null
                     })
 
-                insert[idx].proj_ID = projID
-                insert[idx].parent_ID = parentID
+                let parentInfo =
+
+                insert[idx].proj_ID = project.id
+                insert[idx].proj_TAG = project.info.proj_TAG
+                insert[idx].parent_ID = parent.id
+                insert[idx].parent_TAG = parent.name
             }
             this.insertServer(insert)
         }

@@ -156,7 +156,6 @@
             insert: req.body.insert,
             user: req.user.name
         }
-        console.log(api)
         db.post(api).then( (results) => { res.json(results) })
           .catch( (err) => { res.send(err) })
     })

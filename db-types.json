@@ -1,0 +1,20 @@
+{
+  "part_TAG": "string",
+  "dscr_STR": "string",
+  "mfr_STR": "string",
+  "unit_QTY": "number",
+  "total_QTY": "number",
+  "note_STR": "string",
+  "status_STR": "string",
+  "vendor_STR": "string",
+  "unitPrice_CUR": "currency",
+  "totalPrice_CUR": "currency",
+  "partPO_STR": "string",
+  "order_TS": "date",
+  "due_TS": "date",
+  "proj_ID": "id",
+  "parent_ID": "id",
+  "_id": "id",
+  "proj_TAG": "string",
+  "parent_TAG": "string"
+}

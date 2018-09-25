@@ -7,7 +7,7 @@
     const Mongo = require('mongodb').MongoClient
     const ObjectId = require('mongodb').ObjectID
 
-/** Create Database Path and Schema Objects**/
+/** Create Database Path and Schema Objects **/
     let dbPath = ''
     let dbName = ''
 
@@ -16,6 +16,9 @@
         dbPath = configPath
         dbName = configDatabase
     }
+
+/** Load Views **/
+    const types = require('./db-types')
 
 /** MongoDB find Function **/
     exports.get = function (api) {
@@ -78,7 +81,7 @@
                 //  Parse set values from strings into types
                     let set = api.update[idx].set
                     for (key in set) {
-                        let val = parse(api.update[idx].type, api.update[idx].set[key])
+                        let val = parse(types[key], set[key])
                         api.update[idx].set[key] = val
                     }
 
@@ -103,21 +106,20 @@
         if (api.insert == '') { api.insert = [] }
         for (let idx = 0; idx < api.insert.length; idx++) {
 
+        //  Parse set values from strings into types
+            let item = api.insert[idx]
+            for (key in item) {
+                let val = parse(types[key], item[key])
+                api.insert[idx][key] = val
+            }
+
         //  Convert ID Strings to Objects
             api.insert[idx].proj_ID = ObjectId(api.insert[idx].proj_ID)
             api.insert[idx].parent_ID = ObjectId(api.insert[idx].parent_ID)
 
-        //  Parse set values from strings into types
-            //for (key in api.insert[idx]) {
-            //    let val = parse(api.insert[idx].type, api.insert[idx][key])
-            //    api.insert[idx][key] = val
-            //}
-
         //  Update Timestamp
             api.insert[idx].insert_TS = new Date()
             api.insert[idx].insert_TAG = api.user
-
-            console.log(api.insert[idx])
         }
 
     //  Create new promise object
@@ -147,7 +149,10 @@ function parse (type, value) {
         return value
     case 'number':
         return Number(value)
+    case 'currency':
+        return Number(value)
     case 'date':
         return value
     }
+    return value
 }
