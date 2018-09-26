@@ -141,8 +141,12 @@ let ProjectItems = {
         case 'RETRIEVE_ALL_NODE_ITEMS':
             return this.retrieveAllItems(request.message)
 
-        case 'RETRIEVE_NODE_INFO':
+        case 'UPDATE_NODE_LEAFS':
+            this.updateNodeLeafs(request.message)
             break
+
+        case 'INSERT_NODE_LEAFS':
+            this.insertNodeLeafs(request.message)
         }
     },
 
@@ -219,6 +223,43 @@ let ProjectItems = {
         })
         .fail( () => {
             this.note.display('ERROR: Project Items AJAX request failed!')
+        })
+    },
+
+    updateNodeLeafs: function (updates) {
+        let parent = Assemblies.action({
+            action: 'RETRIEVE_PARENT',
+            message:  null
+        })
+        for (let idx = 0; idx < updates.length; idx++) {
+            let id = updates[idx][this.idKEY]
+            let set = updates[idx].set
+            let leafs = this.ancestors[parent.id].leafs
+            for (let idy = 0; idy < leafs.length; idy++) {
+                if (leafs[idy][this.idKEY] == id) {
+                    for (key in set) {
+                        this.ancestors[parent.id].leafs[idy][key] = set[key]
+                    }
+                }
+            }
+        }
+        Parts.action({
+            action: 'DISPLAY_SELECTED_NODE_ITEMS',
+            message: parent.id
+        })
+    },
+
+    insertNodeLeafs: function (inserts) {
+        let parent = Assemblies.action({
+            action: 'RETRIEVE_PARENT',
+            message:  null
+        })
+        for (let idx = 0; idx < inserts.length; idx++) {
+            this.ancestors[parent.id].leafs.push(inserts[idx])
+        }
+        Parts.action({
+            action: 'DISPLAY_SELECTED_NODE_ITEMS',
+            message: parent.id
         })
     }
 }
@@ -515,16 +556,14 @@ let PartsEditor = {
             break
 
         case 'SAVE_EDITS':
-            console.log(this.edits)
-            console.log(this.errors)
             this.saveEdits(this.edits)
             break
         }
     },
 
     saveEdits: function (edits) {
-        let update = []
-        let insert = []
+        this.updates = []
+        this.inserts = []
         for (let idx = 0; idx < edits.length; idx++) {
             let id = edits[idx].id
             let field = edits[idx].field
@@ -534,17 +573,19 @@ let PartsEditor = {
             let idARY = id.split('-')
             if (idARY[0] == 'new') {
                 let idx = idARY[1]
-                if (typeof insert[idx] === 'undefined') { insert[idx] ={} }
-                insert[idx][field] = value
+                if (typeof this.inserts[idx] === 'undefined') {
+                    this.inserts[idx] ={}
+                }
+                this.inserts[idx][field] = value
             } else {
                 let updateItem = { _id: id, set: {} }
                 updateItem.set[field] = value
-                update.push(updateItem)
+                this.updates.push(updateItem)
             }
         }
 
-        if (insert.length > 0) {
-            for (let idx = 0; idx < insert.length; idx++) {
+        if (this.inserts.length > 0) {
+            for (let idx = 0; idx < this.inserts.length; idx++) {
 
                 let project = ProjectsList.action({
                         action: 'RETRIEVE_PROJECT',
@@ -556,26 +597,29 @@ let PartsEditor = {
                         message:  null
                     })
 
-                let parentInfo =
-
-                insert[idx].proj_ID = project.id
-                insert[idx].proj_TAG = project.info.proj_TAG
-                insert[idx].parent_ID = parent.id
-                insert[idx].parent_TAG = parent.name
+                this.inserts[idx].proj_ID = project.id
+                this.inserts[idx].proj_TAG = project.info.proj_TAG
+                this.inserts[idx].parent_ID = parent.id
+                this.inserts[idx].parent_TAG = parent.name
             }
-            this.insertServer(insert)
+            this.insertServer(this.inserts)
         }
-        if (update.length > 0) { this.updateServer(update) }
+
+        if (this.updates.length > 0) { this.updateServer(this.updates) }
+
+        this.edits = []
+        this.errors = []
+        this.active = false
     },
 
-    updateServer: function (update) {
-        let query = { update: update }
+    updateServer: function (updates) {
+        let query = { update: updates }
         let ajaxOBJ = {
             method: 'PUT', url: this.query.path,
             data: query, dataType: 'json'
         }
-        $.ajax(ajaxOBJ).done( (results) => {
-            if (results != null) { console.log(results) }
+        $.ajax(ajaxOBJ).done( (result) => {
+            if (result != null) { this.updateProjectItems(result) }
             else {
                 this.win.message.display('ERROR: Parts Editor Update failed.')
             }
@@ -585,14 +629,14 @@ let PartsEditor = {
         })
     },
 
-    insertServer: function (insert) {
-        let query = { insert: insert }
+    insertServer: function (inserts) {
+        let query = { insert: inserts }
         let ajaxOBJ = {
             method: 'POST', url: this.query.path,
             data: query, dataType: 'json'
         }
-        $.ajax(ajaxOBJ).done( (results) => {
-            if (results != null) { console.log(results) }
+        $.ajax(ajaxOBJ).done( (result) => {
+            if (result != null) { this.insertProjectItems(result) }
             else {
                 this.win.message.display('ERROR: Parts Editor Insert failed.')
             }
@@ -600,6 +644,28 @@ let PartsEditor = {
         .fail( () => {
             this.win.message.display('ERROR: Parts Editor AJAX request failed!')
         })
+    },
+
+    updateProjectItems: function (result) {
+        if (result.ok > 0) {
+            ProjectItems.action({
+                action: 'UPDATE_NODE_LEAFS',
+                message: this.updates
+            })
+        }
+        this.updates = []
+    },
+
+    insertProjectItems: function (result) {
+        if (result.inserted) {
+            ProjectItems.action({
+                action: 'INSERT_NODE_LEAFS',
+                message: result.items
+            })
+        } else {
+            this.win.message.display('ERROR: Parts Editor save failed!')
+        }
+        this.inserts = []
     }
 }
 

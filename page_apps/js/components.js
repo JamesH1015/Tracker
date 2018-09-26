@@ -445,7 +445,7 @@ let GridEdit = {
     enableSave: function () {
         this.save.active = true
         $(this.saveBtn).prop("disabled", false)
-        $(this.saveBtn).removeClass('btn-secondary').addClass('btn-danger')
+        $(this.saveBtn).removeClass('btn-secondary').addClass('btn-success')
     },
 
     disableSave: function () {

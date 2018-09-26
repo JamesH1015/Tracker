@@ -156,6 +156,15 @@
             insert: req.body.insert,
             user: req.user.name
         }
-        db.post(api).then( (results) => { res.json(results) })
+        db.post(api).then( (result) => {
+            if (result.insertedCount > 0) {
+                for (let idx = 0; idx < result.ops.length; idx++) {
+                    result.ops[idx]._id = result.insertedIds[idx]
+                }
+                res.json({ inserted: true, items: result.ops })
+            } else {
+                res.json({ inserted: false, items: null })
+            }
+        })
           .catch( (err) => { res.send(err) })
     })
