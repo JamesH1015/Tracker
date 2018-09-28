@@ -109,34 +109,38 @@ let SideBarGroup = {
 
     renderNodes: function (nodeID, view, nodes, level) {
         for (let idx = nodes.length - 1; idx > -1; idx--) {
-
-            let id = nodes[idx][view.id]
-            let name = nodes[idx][view.name]
-            let desc = nodes[idx][view.desc]
-
-        //  Insert node
-            let html = `<button id="${id}" type="button"`
-                + `class="node list-group-item list-group-item-action list-group-item-secondary">`
-                + `<img src="${this.closedIMG}" class="float-left mt-3 mr-2">`
-                + `<div class="text-truncate">${name}`
-                + `<br>${desc}</div></button>`
-            $(html).insertAfter(`#${nodeID}`)
-
-        //  Insert level icons
-            for (let idy = 0; idy < level - 1; idy++) {
-                let html = `<img src="${this.closedIMG}"`
-                    + `class="float-left mt-3">`
-                $(`#${id} img:first`).before(html)
-            }
-
-        //  Activate nodes
-            $(`#${id}`).click( () => {
-                Dispatch({
-                    action: 'DISPLAY_SELECTED_NODE_ITEMS',
-                    message: id
-                })
-            })
+            this.renderNode(nodeID, view, nodes[idx], level)
         }
+    },
+
+    renderNode: function (nodeID, view, node, level) {
+
+        let id = node[view.id]
+        let name = node[view.name]
+        let desc = node[view.desc]
+
+    //  Insert node
+        let html = `<button id="${id}" type="button"`
+            + `class="node list-group-item list-group-item-action list-group-item-secondary">`
+            + `<img src="${this.closedIMG}" class="float-left mt-3 mr-2">`
+            + `<div class="text-truncate">${name}`
+            + `<br>${desc}</div></button>`
+        $(html).insertAfter(`#${nodeID}`)
+
+    //  Insert level icons
+        for (let idy = 0; idy < level - 1; idy++) {
+            let html = `<img src="${this.closedIMG}"`
+                + `class="float-left mt-3">`
+            $(`#${id} img:first`).before(html)
+        }
+
+    //  Activate nodes
+        $(`#${id}`).click( () => {
+            Dispatch({
+                action: 'DISPLAY_SELECTED_NODE_ITEMS',
+                message: id
+            })
+        })
     },
 
     removeNode: function (nodeID) {
@@ -574,5 +578,41 @@ let ModalIcon = {
             let option = `<option value="${idx}">${name}</option>`
             $(id).append(option)
         }
+    }
+}
+
+let ModalAddNode = {
+
+    initialize: function (init) {
+        this.parentHd = init.parentHd
+        this.nameInp = init.nameInp
+        this.descInp = init.descInp
+        this.nameAlert = init.nameAlert
+        this.descAlert = init.descAlert
+        this.insertBtn = init.insertBtn
+        this.modal = init.modal
+
+        $(this.insertBtn).click( () => {
+            let name = $(this.nameInp).val()
+            let desc = $(this.descInp).val()
+            if (name == '') {
+                $(this.nameAlert).append('Enter new assembly number.')
+            }
+            if (desc == '') {
+                $(this.descAlert).append('Enter new assembly description.')
+            }
+            if ((name != '') && (desc != '')) {
+                Dispatch({
+                    action: 'ADD_NEW_ASSEMBLY',
+                    message: { name: name, desc: desc }
+                })
+                $(this.modal).modal('hide')
+            }
+        })
+    },
+
+    displaySelected: function (name) {
+        $(this.parentHd).empty()
+        $(this.parentHd).append(name)
     }
 }

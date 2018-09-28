@@ -120,17 +120,16 @@ let ViewsList = {
 let ProjectItems = {
 
     initialize: function (init) {
-        this.queryPATH = init.queryPATH
-        this.note = init.note
-        this.idKEY = init.idKEY
-        this.parentKEY = init.parentKEY
+        this.win = init.win
+        this.query = init.query
+        this.view = init.view
     },
 
     action: function (request) {
         switch (request.action) {
 
         case 'QUERY_PROJECT_DATA':
-            this.queryServer(this.queryPATH, request.message)
+            this.queryServer(request.message)
             break
 
         case 'RETRIEVE_NODE_ITEMS_BY_TYPE':
@@ -147,6 +146,11 @@ let ProjectItems = {
 
         case 'INSERT_NODE_LEAFS':
             this.insertNodeLeafs(request.message)
+            break
+
+        case 'INSERT_NEW_NODE':
+            this.insertNewNode(request.message)
+            break
         }
     },
 
@@ -157,15 +161,19 @@ let ProjectItems = {
     //  and create 'nodes' and 'leafs' arrays for each ancestor
         let idx = 0
         while (idx < itemsLEN) {
-            let ancestorID = items[idx][this.parentKEY]
+            let ancestorID = items[idx][this.view.parent]
+            let itemID = items[idx][this.view.id]
+            let itemType = items[idx][this.view.type]
             if (!(ancestorID in this.ancestors)) {
                 if ((ancestorID != null) && (ancestorID != '')) {
                     this.ancestors[ancestorID] = { nodes: [], leafs: [] }
                 } else {
                     this.rootITEM = items[idx]
-                    let itemID = items[idx][this.idKEY]
                     this.ancestors[itemID] = { nodes: [], leafs: [] }
                 }
+            }
+            if (itemType == 'assembly') {
+                this.ancestors[itemID] = { nodes: [], leafs: [] }
             }
             idx++
         }
@@ -173,13 +181,13 @@ let ProjectItems = {
     //  and push them into arrays mapped to the ancestor
         let idy = 0
         while (idy < itemsLEN) {
-            let itemID = items[idy][this.idKEY]
-            let ancestorID = items[idy][this.parentKEY]
+            let itemID = items[idy][this.view.id]
+            let ancestorID = items[idy][this.view.parent]
             if (itemID in this.ancestors) {
                 if ((ancestorID != null) && (ancestorID != '')) {
                     this.ancestors[ancestorID].nodes.push(items[idy])
                 }
-            } else{
+            } else {
                 this.ancestors[ancestorID].leafs.push(items[idy])
             }
             idy++
@@ -209,20 +217,20 @@ let ProjectItems = {
         return items
     },
 
-    queryServer: function (pathSTR, projectID) {
-        let queryOBJ = { find: { proj_ID: projectID }, sort: null }
+    queryServer: function (projectID) {
+        let query = { find: { proj_ID: projectID }, sort: null }
         let ajaxOBJ = {
-            method: 'GET', url: pathSTR,
-            data: queryOBJ, dataType: 'json'
+            method: 'GET', url: this.query.path,
+            data: query, dataType: 'json'
         }
-        $.ajax(ajaxOBJ).done( (resultsARY) => {
-            if (resultsARY != null) { this.store(resultsARY) }
+        $.ajax(ajaxOBJ).done( (results) => {
+            if (results != null) { this.store(results) }
             else {
-                this.note.display('ERROR: Project Items not found.')
+                this.win.message.display('ERROR: Project Items not found.')
             }
         })
         .fail( () => {
-            this.note.display('ERROR: Project Items AJAX request failed!')
+            this.win.message.display('ERROR: Project Items AJAX request failed!')
         })
     },
 
@@ -232,11 +240,11 @@ let ProjectItems = {
             message:  null
         })
         for (let idx = 0; idx < updates.length; idx++) {
-            let id = updates[idx][this.idKEY]
+            let id = updates[idx][this.view.id]
             let set = updates[idx].set
             let leafs = this.ancestors[parent.id].leafs
             for (let idy = 0; idy < leafs.length; idy++) {
-                if (leafs[idy][this.idKEY] == id) {
+                if (leafs[idy][this.view.id] == id) {
                     for (key in set) {
                         this.ancestors[parent.id].leafs[idy][key] = set[key]
                     }
@@ -261,16 +269,23 @@ let ProjectItems = {
             action: 'DISPLAY_SELECTED_NODE_ITEMS',
             message: parent.id
         })
+    },
+
+    insertNewNode: function (node) {
+        let nodeID = node[this.view.id]
+        let parentID = node[this.view.parent]
+
+        this.ancestors[nodeID] = { nodes: [], leafs: [] }
+        this.ancestors[parentID].nodes.push(node)
     }
 }
 
 let Assemblies = {
 
     initialize: function (init) {
-        this.component = init.component
-        this.note = init.note
+        this.win = init.win
         this.view = init.view
-        this.settings = init.settings
+        this.query = init.query
     },
 
     action: function (request) {
@@ -282,12 +297,17 @@ let Assemblies = {
 
         case 'DISPLAY_SELECTED_NODE_ITEMS':
             this.updateRecent(request.message)
+            this.win.add.displaySelected(this.nodes[this.now.id].name)
             break
 
         case 'RETRIEVE_PARENT':
             let id = this.now.id
             let name = this.nodes[id].name
             return { id: id, name: name }
+
+        case 'ADD_NEW_ASSEMBLY':
+            this.addAssembly(request.message.name, request.message.desc)
+            break
         }
     },
 
@@ -300,6 +320,7 @@ let Assemblies = {
         this.nodes[this.rootID] = { name: rootName, active: true, level: 0 }
 
         this.displayRoot(rootITEM)
+        this.win.add.displaySelected(rootName)
     },
 
     displayRoot: function (root) {
@@ -307,7 +328,7 @@ let Assemblies = {
         this.old = { id: null, level: null}
         this.now = { id: root[this.view.id], level: 0 }
 
-        this.component.renderRoot(this.view, root)
+        this.win.sidebar.renderRoot(this.view, root)
 
         Parts.action({
             action: 'DISPLAY_SELECTED_NODE_ITEMS',
@@ -356,8 +377,8 @@ let Assemblies = {
                 this.nodes[itemID] = { name: itemName, active: false, level: subLevel }
             }
 
-            this.component.toggleArrows(nodeID, 'open')
-            this.component.renderNodes(nodeID, this.view, items, subLevel)
+            this.win.sidebar.toggleArrows(nodeID, 'open')
+            this.win.sidebar.renderNodes(nodeID, this.view, items, subLevel)
         }
     },
 
@@ -368,16 +389,78 @@ let Assemblies = {
         for (key in this.nodes) {
             let level = this.nodes[key].level
             if (level >= minLevel) {
-                this.component.removeNode(key)
+                this.win.sidebar.removeNode(key)
                 this.nodes.active = false
                 this.nodes[key].level = -1
             }
             let active = this.nodes[key].active
             if ((level = nodeLevel) && (active)) {
-                this.component.toggleArrows(key, 'close')
+                this.win.sidebar.toggleArrows(key, 'close')
                 this.nodes[key].active = false
             }
         }
+    },
+
+    addAssembly: function (name, desc) {
+        let parentID = this.now.id
+        let parentName = this.nodes[parentID].name
+
+        let project = ProjectsList.action({
+            action: 'RETRIEVE_PROJECT',
+            message: null
+        })
+
+        let inserts = [{
+            proj_ID: project.id,
+            proj_TAG: project.info.proj_TAG,
+            parent_ID: parentID,
+            parent_TAG: parentName,
+            part_TAG: name,
+            dscr_STR: desc,
+            type_STR: 'assembly'
+        }]
+        this.queryServer(inserts)
+    },
+
+    queryServer: function (inserts) {
+        let query = { insert: inserts }
+        let ajaxOBJ = {
+            method: 'POST', url: this.query.path,
+            data: query, dataType: 'json'
+        }
+        $.ajax(ajaxOBJ).done( (result) => {
+            if (result != null) { this.insertProjectItems(result) }
+            else {
+                this.win.message.display('ERROR: Assembly Insert failed.')
+            }
+        })
+        .fail( () => {
+            this.win.message.display('ERROR: Assembly AJAX request failed!')
+        })
+    },
+
+    insertProjectItems: function (result) {
+        if (result.inserted) {
+            ProjectItems.action({
+                action: 'INSERT_NEW_NODE',
+                message: result.items[0]
+            })
+            this.insertNode(result.items[0])
+        } else {
+            this.win.message.display('ERROR: Add Assembly save failed!')
+        }
+    },
+
+    insertNode: function (node) {
+        let nodeID = node[this.view.id]
+        let subLevel = this.now.level + 1
+        let parentID = node[this.view.parent]
+        this.nodes[nodeID] = {
+            name: node[this.view.name],
+            active: false,
+            level: subLevel
+        }
+        this.win.sidebar.renderNode(parentID, this.view, node, subLevel)
     }
 }
 

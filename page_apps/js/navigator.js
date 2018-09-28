@@ -9,7 +9,7 @@ let Page = Object.create(HTMLDoc)
 let Menu = Object.create(NavigationBar)
 
     Menu.initialize({
-        navLinks: '.navbar-brand, .nav-link'
+        navLinks: '.navbar-brand, .nav-link, .dropdown-item'
     })
 
 let Message = Object.create(ModalMessage)
@@ -96,10 +96,9 @@ let ViewSelector = Object.create(ViewSelect)
 
 /** Project Items **/
     ProjectItems.initialize({
-        queryPATH: '/navigator/parts',
-        note: Application.note,
-        idKEY: '_id',
-        parentKEY: 'parent_ID'
+        win: { message: Message },
+        query: { path: '/navigator/parts' },
+        view: { id: '_id', parent: 'parent_ID', type: 'type_STR' }
     })
 
 /** Project Assemblies in Side Bar **/
@@ -111,9 +110,23 @@ let SideBar = Object.create(SideBarGroup)
         expandIcon: 'img/expand.png'
     })
 
+let AddAssembly = Object.create(ModalAddNode)
+    AddAssembly.initialize({
+        parentHd: '#add-node-parent',
+        nameInp: '#add-node-name',
+        descInp: '#add-node-desc',
+        insertBtn: '#add-node-insert',
+        nameAlert: '#add-node-name-alert',
+        descAlert: '#add-node-desc-alert',
+        modal: '#modal-add-node'
+    })
+
     Assemblies.initialize({
-        component: SideBar,
-        view: { id: '_id', name: 'part_TAG', desc: 'dscr_STR' }
+        win: { sidebar: SideBar, message: Message, add: AddAssembly },
+        view: { id: '_id', parent: 'parent_ID',
+            name: 'part_TAG', desc: 'dscr_STR'
+        },
+        query: { path: '/navigator/parts' }
     })
 
 /** Project Parts in Grid Model **/

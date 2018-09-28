@@ -40,6 +40,15 @@
       </select>
       <button id="btn-filter-clear" class="btn btn-success mr-sm-2" type="button">FILTER</button>
       <button id="btn-insert" class="btn btn-success mr-sm-2" type="button">INSERT</button>
+      <div class="dropdown">
+        <button class="btn btn-success dropdown-toggle mr-sm-2" type="button" id="dropdownMenuButton" data-toggle="dropdown">MORE</button>
+        <div class="dropdown-menu dropdown-menu-right">
+          <a class="dropdown-item" href="#">Query Projects</a>
+          <a class="dropdown-item" href="#modal-add-node">Add Assembly</a>
+          <a class="dropdown-item" href="#">Import Parts</a>
+          <a class="dropdown-item" href="#">Export Parts</a>
+        </div>
+      </div>
       <button id="btn-save" class="btn btn-secondary mr-sm-2" type="button" disabled>SAVE</button>
     </form>
   </div>
@@ -109,16 +118,40 @@
       </div>
       <div class="modal-body bg-white text-dark">
         <h5>Tracker 3.0.0</h5>
-        <p>The following open source libraries are used as free software under various copyleft licenses:
-        <ul>
-          <li>Node.js 10.6 (event-driven, non-blocking I/O)</li>
-          <li>MongoDB 4.0 (NoSQL BSON database)</li>
-          <li>Express 4.16 (web framework for Node.js)</li>
-          <li>jQuery 3.3 (multi-browser javascript library)</li>
-          <li>Bootstrap 4.1 (front-end component library)</li>
-        </ul></p>
+        <p>Tracker is </p>
         <p>Copyright 2018 James Houck, REI Automation, Inc.<br>
         All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Add Node -->
+<div class="modal fade" id="modal-add-node" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-success">
+        <h5 class="modal-title text-light">Add Assembly</h5>
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body bg-white text-dark">
+        <form class="form">
+          <div>Inserts new assembly into selected assembly.</div>
+          <h3 id="add-node-parent"></h3>
+          <div class="form-group">
+            <label for="add-node-number">New Assembly Number</label>
+            <input type="text" class="form-control" id="add-node-name" placeholder="Enter number">
+            <div id="add-node-name-alert" class="text-danger"></div>
+          </div>
+          <div class="form-group">
+            <label for="add-node-desc">New Assembly Description</label>
+            <input type="text" class="form-control" id="add-node-desc" placeholder="Enter description">
+            <div id="add-node-desc-alert" class="text-danger"></div>
+          </div>
+          <button id="add-node-insert" class="btn btn-success" type="button">INSERT</button>
+        </form>
       </div>
     </div>
   </div>
