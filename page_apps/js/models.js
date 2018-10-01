@@ -7,9 +7,27 @@ let Application = {
 
     initialize: function initialize (init) {
         this.win = init.win
+        this.ready = init.ready
+        this.run = init.run
     },
 
-    start: function (func) { this.win.page.ready(func) }
+    start: function (func) { this.win.page.ready(func) },
+
+    action: function (request) {
+        switch (request.action) {
+
+        case 'READY':
+            let com = request.message
+            this.ready[com] = true
+
+            let readyComplete = true
+            for (key in this.ready) {
+                if (!this.ready[key]) { readyComplete = false }
+            }
+            if (readyComplete) { this.run() }
+            break
+        }
+    }
 }
 
 let ProjectsList = {
@@ -19,6 +37,7 @@ let ProjectsList = {
         this.view = init.view
         this.query = init.query
         this.projects = []
+        this.info = {}
         this.project = {}
     },
 
@@ -30,26 +49,62 @@ let ProjectsList = {
             break
 
         case 'DISPLAY_SELECTED_PROJECT':
-            this.project.id = request.message
-            for (let idx = 0; idx < this.projects.length; idx++) {
-                if (this.projects[idx]._id == this.project.id) {
-                  this.project.info = this.projects[idx]
-                }
-            }
-            Dispatch({
-                action: 'QUERY_PROJECT_DATA',
-                message: this.project.id
-            })
+            let val = request.message
+            if (val == 'null') { this.queryProjects() }
+            else { this.loadProject(val) }
             break
 
         case 'RETRIEVE_PROJECT':
             return this.project
+
+        case 'RETRIEVE_PROJECT_INFO':
+            let projID = request.message
+            return {
+                id: this.projID,
+                name: this.info[projID][this.view.name],
+                desc: this.info[projID][this.view.desc]
+            }
         }
     },
 
     store: function (items) {
         this.projects = items
         this.win.select.render(this.view, this.projects)
+
+        for (let idx = 0; idx < items.length; idx++) {
+            let projID = items[idx][this.view.id]
+            this.info[projID] = this.projects[idx]
+        }
+
+        Application.action({
+            action: 'READY',
+            message: 'ProjectsList'
+        })
+    },
+
+    queryProjects: function () {
+        Parts.action({
+            action: 'RESET',
+            message: { filter: false }
+        })
+        Assemblies.action({
+            action: 'RESET',
+            message: null
+        })
+        ProjectItems.action({
+            action: 'RESET',
+            message: null
+        })
+    },
+
+    loadProject: function (val) {
+        this.project.id = val
+        this.project.info = this.info[val]
+
+        ProjectItems.action({
+            action: 'QUERY_PROJECT_DATA',
+            message: this.project.id
+        })
     },
 
     queryServer: function () {
@@ -97,6 +152,10 @@ let ViewsList = {
     store: function (items) {
         this.views = items
         this.win.select.render(this.views)
+        Application.action({
+            action: 'READY',
+            message: 'ViewsList'
+        })
     },
 
     queryServer: function () {
@@ -113,6 +172,74 @@ let ViewsList = {
         })
         .fail( () => {
             this.win.message.display('ERROR: Views List AJAX request failed!')
+        })
+    }
+}
+
+let ProjectsQuery = {
+
+    initialize: function (init) {
+        this.win = init.win
+        this.query = init.query
+        this.view = init.view
+    },
+
+    action: function (request) {
+        switch (request.action) {
+
+        case 'QUERY_PROJECTS':
+            let inputs = request.message
+            let find = {}
+            for (key in inputs) {
+                if (inputs[key] != '') { find[key] = inputs[key] }
+            }
+            this.queryServer(find)
+            break
+        }
+    },
+
+    store: function (items) {
+        this.projects = {}
+        let itemsLEN = items.length
+        let idx = 0
+        while (idx < itemsLEN) {
+            let projID = items[idx][this.view.projID]
+            if (projID != '') {
+                if (!(projID in this.projects)) {
+                    this.projects[projID] = [items[idx]]
+                } else {
+                    this.projects[projID].push(items[idx])
+                }
+            }
+            idx++
+        }
+        this.displayProjects()
+    },
+
+    displayProjects: function () {
+        for (key in this.projects) {
+            let info = ProjectsList.action({
+                action: 'RETRIEVE_PROJECT_INFO',
+                message: key
+            })
+            this.win.sidebar.renderItem(info)
+        }
+    },
+
+    queryServer: function (find) {
+        let query = { find: find, sort: null }
+        let ajaxOBJ = {
+            method: 'GET', url: this.query.path,
+            data: query, dataType: 'json'
+        }
+        $.ajax(ajaxOBJ).done( (results) => {
+            if (results != null) { this.store(results) }
+            else {
+                this.win.message.display('ERROR: Project Items not found.')
+            }
+        })
+        .fail( () => {
+            this.win.message.display('ERROR: Project Items AJAX request failed!')
         })
     }
 }
@@ -150,6 +277,10 @@ let ProjectItems = {
 
         case 'INSERT_NEW_NODE':
             this.insertNewNode(request.message)
+            break
+
+        case 'RESET':
+            this.ancestors = {}
             break
         }
     },
@@ -308,6 +439,14 @@ let Assemblies = {
         case 'ADD_NEW_ASSEMBLY':
             this.addAssembly(request.message.name, request.message.desc)
             break
+
+        case 'RESET':
+            this.rootID = null
+            this.nodes = {}
+            this.old = { id: null, level: null }
+            this.now = { id: null, level: null }
+            this.win.sidebar.clearNodes()
+            break
         }
     },
 
@@ -325,7 +464,7 @@ let Assemblies = {
 
     displayRoot: function (root) {
 
-        this.old = { id: null, level: null}
+        this.old = { id: null, level: null }
         this.now = { id: root[this.view.id], level: 0 }
 
         this.win.sidebar.renderRoot(this.view, root)
@@ -475,6 +614,8 @@ let Parts = {
         this.filter = {}
         this.colors = {}
         this.blankRowIndex = 0
+        this.items = []
+        this.filterActive = true
     },
 
     action: function (request) {
@@ -486,6 +627,10 @@ let Parts = {
                 message: 'colorsSchema'
             })
             this.queryServer(schemaName)
+            Application.action({
+                action: 'READY',
+                message: 'Parts'
+            })
             break
 
         case 'DISPLAY_SELECTED_NODE_ITEMS':
@@ -502,12 +647,12 @@ let Parts = {
             break
 
         case 'STORE_FILTER_INPUTS':
-            this.filterBlank = request.message
+            //this.filterBlank = request.message
             this.filter = request.message
             break
 
         case 'CLEAR_FILTER':
-            this.filter = this.filterBlank
+            this.filter = {}  //  this.filterBlank
             this.displayFilter(this.items)
             break
 
@@ -519,6 +664,21 @@ let Parts = {
 
         case 'INSERT_BLANK_ROW':
             this.insertBlankRow()
+            break
+
+        case 'RESET':
+            this.filterActive = request.message.filter
+            this.items = []
+            this.currNodeID = ''
+            this.prevNodeID = ''
+            this.filter = {}
+
+            let view = ViewsList.action({
+                action: 'RETRIEVE_SELECTED_VIEW',
+                message: null
+            })
+            this.win.grid.renderHead(view, this.filterActive)
+            this.win.grid.clearBody()
             break
         }
     },
@@ -566,7 +726,7 @@ let Parts = {
             action: 'RETRIEVE_SELECTED_VIEW',
             message: null
         })
-        this.win.grid.renderHead(view)
+        this.win.grid.renderHead(view, this.filterActive)
         this.win.grid.renderBody(view, items, this.filter, this.colors)
     },
 
@@ -640,6 +800,10 @@ let PartsEditor = {
 
         case 'SAVE_EDITS':
             this.saveEdits(this.edits)
+            break
+
+        case 'DISABLE_INSERT':
+            this.win.disableInsert()
             break
         }
     },
@@ -769,6 +933,10 @@ let UserProfile = {
 
         case 'LOAD_PROFILE':
             this.load()
+            Application.action({
+                action: 'READY',
+                message: 'UserProfile'
+            })
             break
 
         case 'CHANGE_SETTING':

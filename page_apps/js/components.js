@@ -29,7 +29,7 @@ let ProjectSelect = {
         for (let idx = 0; idx < items.length; idx++) {
             let id = items[idx][view.id]
             let name = items[idx][view.name]
-            let desc = items[idx][view.desc]
+            let desc = items[idx][view.cust]
             let option = `<option value="${id}">${name} ${desc}</option>`
             $(selectID).append(option)
         }
@@ -76,6 +76,35 @@ let ViewSelect = {
     }
 }
 
+let SideBarList = {
+
+    initialize: function (init) {
+        this.listID = init.listID
+    },
+
+    renderItem: function (node) {
+        //
+        let id = node.id
+        let name = node.name
+        let desc = node.desc
+
+    //  Insert node
+        let html = `<button id="${id}" type="button"`
+            + `class="node list-group-item list-group-item-action list-group-item-secondary">`
+            + `<div class="text-truncate">${name}`
+            + `<br>${desc}</div></button>`
+        $(this.listID).append(html)
+
+    //  Activate nodes
+        $(`#${id}`).click( () => {
+            Dispatch({
+                action: 'DISPLAY_SELECTED_NODE_ITEMS',
+                message: id
+            })
+        })
+    }
+}
+
 let SideBarGroup = {
 
     initialize: function (init) {
@@ -91,13 +120,14 @@ let SideBarGroup = {
         let name = root[view.name]
         let desc = root[view.desc]
 
-        this.rootID = root[view.id] // toggleArrows exclusion
+        this.rootID = root[view.id]
 
         let html = `<button id="${id}" type="button"`
             + `class="node list-group-item list-group-item-action list-group-item-secondary">`
             + `<img src="${this.circleIMG}" class="float-left mt-3 mr-2">`
             + `<div class="text-truncate">${name}`
             + `<br>${desc}</div></button>`
+        $(this.listID).empty()
         $(this.listID).append(html)
         $(`#${id}`).click( () => {
             Dispatch({
@@ -147,7 +177,12 @@ let SideBarGroup = {
         $(`#${nodeID}`).remove()
     },
 
+    clearNodes: function () {
+        $(this.listID).empty()
+    },
+
     toggleArrows: function (nodeID, state) {
+    //  toggleArrows exclusion of root item
         if (nodeID != this.rootID) {
             if (state == 'open') {
                 $(`#${nodeID} img`).attr('src', this.expandIMG)
@@ -164,20 +199,25 @@ let DataGrid = {
     initialize: function (init) {
         this.headID = init.headID
         this.bodyID = init.bodyID
-        this.filterClearBtn = init.filterClearBtn
+        this.findBtn = init.findBtn
 
-        $(this.filterClearBtn).click( () => {
-            $('.filter').each( function () { $(this).val('') })
+        $(this.findBtn).click( () => {
+            let inputs = {}
+            $('.filter').each( function () {
+                let key = $(this).attr('id');
+                let val = $(this).val();
+                inputs[key] = val;
+            })
             Dispatch({
-                action: 'CLEAR_FILTER',
-                message: null
+                action: 'QUERY_PROJECTS',
+                message: inputs
             })
         })
     },
 
-    renderHead: function(view) {
-        this.renderTitle(this.headID, view)
-        let inputs = this.renderFilter(this.headID, view)
+    renderHead: function(view, active) {
+        this.renderTitle(this.headID, view, active)
+        let inputs = this.renderFilter(this.headID, view, active)
         Dispatch({
             action: 'STORE_FILTER_INPUTS',
             message: inputs
@@ -186,6 +226,10 @@ let DataGrid = {
 
     renderBody: function (view, rows, filter, colors) {
         this.renderRows(this.bodyID, view, rows, filter, colors)
+    },
+
+    clearBody: function () {
+        $(this.bodyID).empty()
     },
 
     renderTitle: function (id, view) {
@@ -212,7 +256,7 @@ let DataGrid = {
         $(id).append(frag)
     },
 
-    renderFilter: function (id, view) {
+    renderFilter: function (id, view, active) {
         let columns = view.columns
 
     //  Create row
@@ -239,18 +283,20 @@ let DataGrid = {
         $(id).append(frag)
 
     //  Keyup event
-        $('.filter').keyup( () => {
-            let inputs = {}
-            $('.filter').each( function () {
-                let key = $(this).attr('id');
-                let val = $(this).val();
-                inputs[key] = val;
+        if (active) {
+            $('.filter').keyup( () => {
+                let inputs = {}
+                $('.filter').each( function () {
+                    let key = $(this).attr('id');
+                    let val = $(this).val();
+                    inputs[key] = val;
+                })
+                Dispatch({
+                    action: 'DISPLAY_FILTERED_ITEMS',
+                    message: inputs
+                })
             })
-            Dispatch({
-                action: 'DISPLAY_FILTERED_ITEMS',
-                message: inputs
-            })
-        })
+        }
         return inputs
     },
 
@@ -456,6 +502,16 @@ let GridEdit = {
         this.save.active = false
         $(this.saveBtn).prop("disabled", true)
         $(this.saveBtn).removeClass('btn-danger').addClass('btn-secondary')
+    },
+
+    enableInsert: function () {
+        $(this.insertBtn).prop("disabled", false)
+        $(this.insertBtn).removeClass('btn-secondary').addClass('btn-success')
+    },
+
+    disableInsert: function () {
+        $(this.insertBtn).prop("disabled", true)
+        $(this.insertBtn).removeClass('btn-danger').addClass('btn-secondary')
     },
 
     validate: function (data, type) {

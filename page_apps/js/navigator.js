@@ -20,7 +20,19 @@ let Message = Object.create(ModalMessage)
     })
 
     Application.initialize({
-        win: { page: Page, menu: Menu, message: Message }
+        win: { page: Page, menu: Menu, message: Message },
+        ready: {
+            UserProfile: false,
+            ViewsList: false,
+            Parts: false,
+            ProjectsList: false
+        },
+        run: function () {
+            Parts.action({
+                action: 'RESET',
+                message: { filter: false }
+            })
+        }
     })
 
     Application.start( function () {
@@ -79,7 +91,9 @@ let ProjectSelector = Object.create(ProjectSelect)
     ProjectsList.initialize({
         win: { select: ProjectSelector, message: Message },
         query: { path: '/navigator/projects' },
-        view: { id: '_id', name: 'proj_TAG', desc: 'cust_TAG' }
+        view: { id: '_id', name: 'proj_TAG',
+            desc: 'projDscr_STR', cust: 'cust_TAG'
+        }
     })
 
 /** Views List **/
@@ -92,6 +106,19 @@ let ViewSelector = Object.create(ViewSelect)
     ViewsList.initialize({
         win: { select: ViewSelector, message: Message },
         query: { path: '/navigator/views' }
+    })
+
+/** Projects Query **/
+let SideBarProjects = Object.create(SideBarList)
+
+    SideBarProjects.initialize({
+        listID: '#sidebar'
+    })
+
+    ProjectsQuery.initialize({
+        win: { sidebar: SideBarProjects, message: Message },
+        query: { path: '/navigator/parts' },
+        view: { id: '_id', projID: 'proj_ID' }
     })
 
 /** Project Items **/
@@ -134,7 +161,7 @@ let PartsGrid = Object.create(DataGrid)
     PartsGrid.initialize({
         headID: '#grid-header',
         bodyID: '#grid-body',
-        filterClearBtn: '#btn-filter-clear'
+        findBtn: '#btn-find'
     })
 
     Parts.initialize({
@@ -159,6 +186,7 @@ let Dispatch = function (request) {
     UserProfile.action(request)
     ProjectsList.action(request)
     ViewsList.action(request)
+    ProjectsQuery.action(request)
     ProjectItems.action(request)
     Assemblies.action(request)
     Parts.action(request)
