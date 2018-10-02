@@ -44,6 +44,10 @@ let Application = {
                 action: 'RESET',
                 message: null
             })
+            ProjectsList.action({
+                action: 'RESET',
+                mesage: null
+            })
             break
         }
     }
@@ -83,6 +87,10 @@ let ProjectsList = {
                 name: this.info[projID][this.view.name],
                 desc: this.info[projID][this.view.desc]
             }
+
+        case 'RESET':
+            this.win.select.set('null')
+            break
         }
     },
 
@@ -677,6 +685,11 @@ let Parts = {
             this.filterActive = true
             this.displayNodeState(request.message)
             this.storeNodeItems(request.message)
+            this.win.grid.disableFind()
+            PartsEditor.action({
+                action: 'RESET',
+                message: { insert: true, more: true }
+            })
             break
 
         case 'DISPLAY_SELECTED_PROJECT_ITEMS':

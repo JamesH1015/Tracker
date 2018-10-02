@@ -57,6 +57,10 @@ let ProjectSelect = {
                 message: projID
             })
         })
+    },
+
+    set: function (val) {
+        $(this.selectID).val(val)
     }
 }
 
