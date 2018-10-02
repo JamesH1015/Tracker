@@ -14,6 +14,20 @@ let HTMLDoc = {
     }
 }
 
+let ResetButton = {
+
+    initialize: function (init) {
+        this.resetBtn = init.resetBtn
+
+        $(this.resetBtn).click( () => {
+            Dispatch({
+                action: 'APP_RESET',
+                message: null
+            })
+        })
+    }
+}
+
 let ProjectSelect = {
 
     initialize: function (init) {
@@ -196,19 +210,36 @@ let DataGrid = {
         this.headID = init.headID
         this.bodyID = init.bodyID
         this.findBtn = init.findBtn
+        this.find = { active: true }
 
         $(this.findBtn).click( () => {
-            let inputs = {}
-            $('.filter').each( function () {
-                let key = $(this).attr('id');
-                let val = $(this).val();
-                inputs[key] = val;
-            })
-            Dispatch({
-                action: 'QUERY_PROJECTS',
-                message: inputs
-            })
+            if (this.find.active) {
+                let inputs = {}
+                let userInput = false
+                $('.filter').each( function () {
+                    let key = $(this).attr('id')
+                    let val = $(this).val()
+                    inputs[key] = val
+                    if (val != '') { userInput = true }
+                })
+                if (userInput) {
+                    Dispatch({
+                        action: 'QUERY_PROJECTS',
+                        message: inputs
+                    })
+                }
+            }
         })
+    },
+
+    enableFind: function () {
+        this.find.active = true
+        $(this.findBtn).prop("disabled", false)
+    },
+
+    disableFind: function () {
+        this.find.active = false
+        $(this.findBtn).prop("disabled", true)
     },
 
     renderHead: function(view, active) {
@@ -402,10 +433,12 @@ let GridEdit = {
         this.bodyID = init.bodyID
         this.insertBtn = init.insertBtn
         this.saveBtn = init.saveBtn
+        this.moreBtn = init.moreBtn
 
         this.item = { id: '', field: '', type: '', text: '' }
         this.input = { text:'', active: false }
         this.save = { active: false }
+        this.insert = { active: false }
         this.edit = {}
 
         this.activateButtons(this.insertBtn, this.saveBtn)
@@ -472,10 +505,12 @@ let GridEdit = {
 
     activateButtons: function (insertID, saveID) {
         $(insertID).click( () => {
-            Dispatch({
-                action: 'INSERT_BLANK_ROW',
-                message: null
-            })
+            if (this.insert.active) {
+                Dispatch({
+                    action: 'INSERT_BLANK_ROW',
+                    message: null
+                })
+            }
         })
         $(saveID).click( () => {
             if (this.save.active) {
@@ -491,23 +526,31 @@ let GridEdit = {
     enableSave: function () {
         this.save.active = true
         $(this.saveBtn).prop("disabled", false)
-        $(this.saveBtn).removeClass('btn-secondary').addClass('btn-success')
     },
 
     disableSave: function () {
         this.save.active = false
         $(this.saveBtn).prop("disabled", true)
-        $(this.saveBtn).removeClass('btn-danger').addClass('btn-secondary')
     },
 
     enableInsert: function () {
+        this.insert.active = true
         $(this.insertBtn).prop("disabled", false)
-        $(this.insertBtn).removeClass('btn-secondary').addClass('btn-success')
     },
 
     disableInsert: function () {
+        this.insert.active = false
         $(this.insertBtn).prop("disabled", true)
-        $(this.insertBtn).removeClass('btn-danger').addClass('btn-secondary')
+    },
+
+    enableMore: function () {
+        //this.save.active = true
+        $(this.moreBtn).prop("disabled", false)
+    },
+
+    disableMore: function () {
+        //this.save.active = false
+        $(this.moreBtn).prop("disabled", true)
     },
 
     validate: function (data, type) {

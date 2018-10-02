@@ -19,8 +19,14 @@ let Message = Object.create(ModalMessage)
         text: '#modal-message-text'
     })
 
+let Reset = Object.create(ResetButton)
+
+    Reset.initialize({
+        resetBtn: '#btn-reset'
+    })
+
     Application.initialize({
-        win: { page: Page, menu: Menu, message: Message },
+        win: { page: Page, reset: Reset, menu: Menu, message: Message },
         ready: {
             UserProfile: false,
             ViewsList: false,
@@ -31,6 +37,10 @@ let Message = Object.create(ModalMessage)
             Parts.action({
                 action: 'RESET',
                 message: { filter: false }
+            })
+            PartsEditor.action({
+                action: 'RESET',
+                message: { insert: false, more: false }
             })
         }
     })
@@ -173,7 +183,8 @@ let PartsEdit = Object.create(GridEdit)
     PartsEdit.initialize({
         bodyID: '#grid-body',
         insertBtn: '#btn-insert',
-        saveBtn: '#btn-save'
+        saveBtn: '#btn-save',
+        moreBtn: '#btn-more'
     })
 
     PartsEditor.initialize({
@@ -183,6 +194,7 @@ let PartsEdit = Object.create(GridEdit)
 
 /** Dispatch **/
 let Dispatch = function (request) {
+    Application.action(request)
     UserProfile.action(request)
     ProjectsList.action(request)
     ViewsList.action(request)

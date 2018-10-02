@@ -26,6 +26,25 @@ let Application = {
             }
             if (readyComplete) { this.run() }
             break
+
+        case 'APP_RESET':
+            Parts.action({
+                action: 'RESET',
+                message: { filter: false }
+            })
+            PartsEditor.action({
+                action: 'RESET',
+                message: { insert: false, more: false }
+            })
+            Assemblies.action({
+                action: 'RESET',
+                message: null
+            })
+            ProjectItems.action({
+                action: 'RESET',
+                message: null
+            })
+            break
         }
     }
 }
@@ -86,6 +105,10 @@ let ProjectsList = {
         Parts.action({
             action: 'RESET',
             message: { filter: false }
+        })
+        PartsEditor.action({
+            action: 'RESET',
+            message: { insert: false }
         })
         Assemblies.action({
             action: 'RESET',
@@ -228,6 +251,10 @@ let ProjectsQuery = {
             id: 'show-all',
             name: 'Find Results',
             desc: 'Display all items'
+        })
+        Parts.action({
+            action: 'DISPLAY_SELECTED_PROJECT_ITEMS',
+            message: 'show-all'
         })
 
         for (key in this.projects) {
@@ -628,7 +655,7 @@ let Parts = {
         this.colors = {}
         this.blankRowIndex = 0
         this.items = []
-        this.filterActive = true
+        this.filterActive = false
     },
 
     action: function (request) {
@@ -647,13 +674,16 @@ let Parts = {
             break
 
         case 'DISPLAY_SELECTED_NODE_ITEMS':
+            this.filterActive = true
             this.displayNodeState(request.message)
             this.storeNodeItems(request.message)
             break
 
         case 'DISPLAY_SELECTED_PROJECT_ITEMS':
+            this.filterActive = true
             this.displayNodeState(request.message)
             this.storeProjectItems(request.message)
+            this.win.grid.disableFind()
             break
 
         case 'DISPLAY_SELECTED_VIEW':
@@ -666,12 +696,11 @@ let Parts = {
             break
 
         case 'STORE_FILTER_INPUTS':
-            //this.filterBlank = request.message
             this.filter = request.message
             break
 
         case 'CLEAR_FILTER':
-            this.filter = {}  //  this.filterBlank
+            this.filter = {}
             this.displayFilter(this.items)
             break
 
@@ -698,6 +727,7 @@ let Parts = {
             })
             this.win.grid.renderHead(view, this.filterActive)
             this.win.grid.clearBody()
+            this.win.grid.enableFind()
             break
         }
     },
@@ -839,7 +869,17 @@ let PartsEditor = {
             break
 
         case 'DISABLE_INSERT':
-            this.win.disableInsert()
+            this.win.edit.disableInsert()
+            break
+
+        case 'RESET':
+            this.insertActive = request.message.insert
+            if (this.insertActive) { this.win.edit.enableInsert() }
+            else { this.win.edit.disableInsert() }
+            if (request.message.more) { this.win.edit.enableMore() }
+            else { this.win.edit.disableMore() }
+            this.updates = []
+            this.inserts = []
             break
         }
     },
