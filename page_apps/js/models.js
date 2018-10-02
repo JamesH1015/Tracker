@@ -60,7 +60,7 @@ let ProjectsList = {
         case 'RETRIEVE_PROJECT_INFO':
             let projID = request.message
             return {
-                id: this.projID,
+                id: projID,
                 name: this.info[projID][this.view.name],
                 desc: this.info[projID][this.view.desc]
             }
@@ -187,6 +187,12 @@ let ProjectsQuery = {
     action: function (request) {
         switch (request.action) {
 
+        case 'RETRIEVE_PROJECT_ITEMS':
+            return this.projects[request.message]
+
+        case 'RETRIEVE_ALL_PROJECT_ITEMS':
+            return this.items
+
         case 'QUERY_PROJECTS':
             let inputs = request.message
             let find = {}
@@ -199,6 +205,7 @@ let ProjectsQuery = {
     },
 
     store: function (items) {
+        this.items = items
         this.projects = {}
         let itemsLEN = items.length
         let idx = 0
@@ -217,6 +224,12 @@ let ProjectsQuery = {
     },
 
     displayProjects: function () {
+        this.win.sidebar.renderItem({
+            id: 'show-all',
+            name: 'Find Results',
+            desc: 'Display all items'
+        })
+
         for (key in this.projects) {
             let info = ProjectsList.action({
                 action: 'RETRIEVE_PROJECT_INFO',
@@ -634,7 +647,13 @@ let Parts = {
             break
 
         case 'DISPLAY_SELECTED_NODE_ITEMS':
-            this.store(request.message)
+            this.displayNodeState(request.message)
+            this.storeNodeItems(request.message)
+            break
+
+        case 'DISPLAY_SELECTED_PROJECT_ITEMS':
+            this.displayNodeState(request.message)
+            this.storeProjectItems(request.message)
             break
 
         case 'DISPLAY_SELECTED_VIEW':
@@ -683,16 +702,18 @@ let Parts = {
         }
     },
 
-    store: function (nodeID) {
+    displayNodeState: function (id) {
         let copyNodeID = this.currNodeID
         this.prevNodeID = copyNodeID
-        this.currNodeID = nodeID
+        this.currNodeID = id
 
         if (this.prevNodeID != '') {
             this.win.grid.highlightNode(this.prevNodeID, 'off')
         }
-        this.win.grid.highlightNode(nodeID, 'on')
+        this.win.grid.highlightNode(id, 'on')
+    },
 
+    storeNodeItems: function (nodeID) {
         let retrieveAll = UserProfile.action({
             action: 'RETRIEVE_SETTING',
             message: 'itemsAll'
@@ -709,6 +730,21 @@ let Parts = {
             })
         }
 
+        this.displayView(this.items)
+    },
+
+    storeProjectItems: function (projID) {
+        if (projID == 'show-all') {
+            this.items = ProjectsQuery.action({
+                action: 'RETRIEVE_ALL_PROJECT_ITEMS',
+                message: null
+            })
+        } else {
+            this.items = ProjectsQuery.action({
+                action: 'RETRIEVE_PROJECT_ITEMS',
+                message: projID
+            })
+        }
         this.displayView(this.items)
     },
 

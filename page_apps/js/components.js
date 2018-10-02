@@ -83,23 +83,19 @@ let SideBarList = {
     },
 
     renderItem: function (node) {
-        //
-        let id = node.id
-        let name = node.name
-        let desc = node.desc
 
     //  Insert node
-        let html = `<button id="${id}" type="button"`
+        let html = `<button id="${node.id}" type="button"`
             + `class="node list-group-item list-group-item-action list-group-item-secondary">`
-            + `<div class="text-truncate">${name}`
-            + `<br>${desc}</div></button>`
+            + `<div class="text-truncate">${node.name}`
+            + `<br>${node.desc}</div></button>`
         $(this.listID).append(html)
 
     //  Activate nodes
-        $(`#${id}`).click( () => {
+        $(`#${node.id}`).click( () => {
             Dispatch({
-                action: 'DISPLAY_SELECTED_NODE_ITEMS',
-                message: id
+                action: 'DISPLAY_SELECTED_PROJECT_ITEMS',
+                message: node.id
             })
         })
     }
