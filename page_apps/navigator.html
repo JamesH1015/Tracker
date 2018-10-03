@@ -45,7 +45,7 @@
         <button id="btn-more" class="btn btn-success dropdown-toggle mr-sm-2" type="button" data-toggle="dropdown">MORE</button>
         <div class="dropdown-menu dropdown-menu-right">
           <a class="dropdown-item" href="#modal-add-node">Add Assembly</a>
-          <a class="dropdown-item" href="#">Import Parts</a>
+          <a class="dropdown-item" href="#modal-import-parts">Import Parts</a>
           <a class="dropdown-item" href="#">Export Parts</a>
         </div>
       </div>
@@ -157,6 +157,32 @@
   </div>
 </div>
 
+<!-- Modal Import Parts -->
+<div class="modal fade" id="modal-import-parts" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-success">
+        <h5 class="modal-title text-light">Import Parts</h5>
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body bg-white text-dark">
+        <form class="form">
+          <div>Import parts from a .csv file and insert them into selected assembly.</div>
+          <h3 id="import-parts-parent"></h3>
+          <div class="form-group">
+            <label for="import-parts-file">Select file to import:</label>
+            <input type="file" class="form-control-file" id="import-parts-file">
+          </div>
+          <div id="import-parts-file-alert" class="text-danger"></div>
+          <button id="import-parts-load" class="btn btn-success mt-3" type="button">LOAD</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Tracker Message -->
 <div id="modal-message" class="modal fade" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
@@ -205,6 +231,7 @@
 <script src="js/components.js"></script>
 <script src="js/models.js"></script>
 <script src="js/navigator.js"></script>
+<script src="js/papaparse.min.js"></script>
 
 </body>
 </html>

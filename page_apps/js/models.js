@@ -477,6 +477,10 @@ let Assemblies = {
         case 'DISPLAY_SELECTED_NODE_ITEMS':
             this.updateRecent(request.message)
             this.win.add.displaySelected(this.nodes[this.now.id].name)
+            ImportParts.action({
+                action: 'DISPLAY_SELECT_NODE_IN_MODAL',
+                message: this.nodes[this.now.id].name
+            })
             break
 
         case 'RETRIEVE_PARENT':
@@ -508,6 +512,10 @@ let Assemblies = {
 
         this.displayRoot(rootITEM)
         this.win.add.displaySelected(rootName)
+        ImportParts.action({
+            action: 'DISPLAY_SELECT_NODE_IN_MODAL',
+            message: this.nodes[this.now.id].name
+        })
     },
 
     displayRoot: function (root) {
@@ -703,6 +711,10 @@ let Parts = {
             this.displayView(this.items)
             break
 
+        case 'APPEND_NEW_ITEMS':
+            this.appendNewItems(request.message)
+            break
+
         case 'DISPLAY_FILTERED_ITEMS':
             this.filter = request.message
             this.displayFilter(this.items)
@@ -806,7 +818,7 @@ let Parts = {
             message: null
         })
         this.win.grid.renderHead(view, this.filterActive)
-        this.win.grid.renderBody(view, items, this.filter, this.colors)
+        this.win.grid.renderBody(view, items, this.filter, this.colors, false)
     },
 
     displayFilter: function (items) {
@@ -815,7 +827,20 @@ let Parts = {
             action: 'RETRIEVE_SELECTED_VIEW',
             message: null
         })
-        this.win.grid.renderBody(view, items, this.filter, this.colors)
+        this.win.grid.renderBody(view, items, this.filter, this.colors, false)
+    },
+
+    appendNewItems: function (items) {
+        let view = ViewsList.action({
+            action: 'RETRIEVE_SELECTED_VIEW',
+            message: null
+        })
+        for (let idx = 0; idx < items.length; idx++) {
+            items[idx]['_id'] = `new-${this.blankRowIndex}`
+            this.blankRowIndex = this.blankRowIndex + 1
+        }
+        console.log(items)
+        this.win.grid.renderBody(view, items, this.filter, this.colors, true)
     },
 
     insertBlankRow: function () {
@@ -1002,6 +1027,51 @@ let PartsEditor = {
             this.win.message.display('ERROR: Parts Editor save failed!')
         }
         this.inserts = []
+    }
+}
+
+let ImportParts = {
+
+    initialize: function (init) {
+        this.win = init.win
+    },
+
+    action: function (request) {
+        switch (request.action) {
+
+        case 'DISPLAY_SELECT_NODE_IN_MODAL':
+            this.win.file.displaySelected(request.message)
+            break
+
+        case 'LOAD_IMPORTED_ITEMS':
+            console.log(request.message)
+            this.viewTransform(request.message.data)
+            break
+        }
+    },
+
+    viewTransform: function (data) {
+        let view = ViewsList.action({
+            action: 'RETRIEVE_SELECTED_VIEW',
+            message: null
+        })
+        let tform = {}
+        for (let idx = 0; idx < view.columns.length; idx++) {
+            tform[view.columns[idx].title] = view.columns[idx].field
+        }
+        let items = []
+        for (let idy = 0; idy < data.length; idy++) {
+            let item = {}
+            for (key in data[idy]) {
+                item[tform[key]] = data[idy][key]
+            }
+            items.push(item)
+        }
+        console.log(items)
+        Parts.action({
+            action: 'APPEND_NEW_ITEMS',
+            message: items
+        })
     }
 }
 

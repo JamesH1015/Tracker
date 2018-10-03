@@ -192,6 +192,19 @@ let PartsEdit = Object.create(GridEdit)
         query: { path: '/navigator/parts' }
     })
 
+let FileImport = Object.create(ModalImport)
+    FileImport.initialize({
+        parentHd: '#import-parts-parent',
+        fileInput: '#import-parts-file',
+        fileAlert: '#import-parts-file-alert',
+        loadBtn: '#import-parts-load',
+        modal: '#modal-import-parts'
+    })
+
+    ImportParts.initialize({
+        win: { file: FileImport }
+    })
+
 /** Dispatch **/
 let Dispatch = function (request) {
     Application.action(request)
@@ -203,4 +216,5 @@ let Dispatch = function (request) {
     Assemblies.action(request)
     Parts.action(request)
     PartsEditor.action(request)
+    ImportParts.action(request)
 }

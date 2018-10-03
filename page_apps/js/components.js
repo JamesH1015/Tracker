@@ -255,8 +255,8 @@ let DataGrid = {
         })
     },
 
-    renderBody: function (view, rows, filter, colors) {
-        this.renderRows(this.bodyID, view, rows, filter, colors)
+    renderBody: function (view, rows, filter, colors, append) {
+        this.renderRows(this.bodyID, view, rows, filter, colors, append)
     },
 
     clearBody: function () {
@@ -331,11 +331,11 @@ let DataGrid = {
         return inputs
     },
 
-    renderRows: function (id, view, rows, filter, colors) {
+    renderRows: function (id, view, rows, filter, colors, append) {
         let rowAttr = view.attributes
         let columns = view.columns
 
-        $(id).empty()
+        if (!append) { $(id).empty() }
 
     //  Create fragment
         let frag = document.createDocumentFragment()
@@ -708,6 +708,68 @@ let ModalAddNode = {
                 $(this.modal).modal('hide')
             }
         })
+    },
+
+    displaySelected: function (name) {
+        $(this.parentHd).empty()
+        $(this.parentHd).append(name)
+    }
+}
+
+let ModalImport = {
+
+    initialize: function (init) {
+        this.parentHd = init.parentHd
+        this.fileInput = init.fileInput
+        this.fileAlert = init.fileAlert
+        this.loadBtn = init.loadBtn
+        this.modal = init.modal
+
+        $(this.loadBtn).click( () => {
+            let fileName = $(this.fileInput).val()
+            if (fileName != '') { this.loadData() }
+            else {
+                $(this.fileAlert).append('Select import file!')
+            }
+        })
+    },
+
+    loadData: function() {
+        $(this.fileInput).parse({
+            config: {
+                delimiter: "",	// auto-detect
+              	newline: "",	// auto-detect
+              	quoteChar: '"',
+              	escapeChar: '"',
+              	header: true,
+              	trimHeaders: true,
+              	dynamicTyping: false,
+              	preview: 0,
+              	encoding: "",
+              	worker: false,
+              	comments: false,
+              	step: undefined,
+              	complete: function (results, file) {
+	                  //console.log("Parsing complete:", results, file)
+                    Dispatch({
+                        action: 'LOAD_IMPORTED_ITEMS',
+                        message: results
+                    })
+                },
+              	error: undefined,
+              	download: false,
+              	skipEmptyLines: true,
+              	chunk: undefined,
+              	fastMode: undefined,
+              	beforeFirstChunk: undefined,
+              	withCredentials: undefined,
+              	transform: undefined
+            },
+            before: function(file, inputElem) { },
+            error: function(err, file, inputElem, reason) { },
+            complete: function() { }
+        })
+        $(this.modal).modal('hide')
     },
 
     displaySelected: function (name) {
