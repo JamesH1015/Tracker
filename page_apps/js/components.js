@@ -49,6 +49,12 @@ let ProjectSelect = {
         }
     },
 
+    clear: function () {
+        $(this.selectID).empty()
+        let option = '<option value="null">Search Projects</option>'
+        $(this.selectID).append(option)
+    },
+
     activate: function (selectID) {
         $(selectID).change( () => {
             let projID = $(`${selectID} option:selected`).attr('value')

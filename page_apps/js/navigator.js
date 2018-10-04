@@ -74,7 +74,8 @@ let Icon = Object.create(ModalIcon)
     Icon.initialize({
         checkBox: {
             highlightRows: '#check-highlight-rows',
-            showAll: '#check-show-all'
+            showAll: '#check-show-all',
+            projectsAll: '#projects-show-all'
         },
         select: {
             selectColorScheme: '#select-highlight-schema'
@@ -87,7 +88,8 @@ let Icon = Object.create(ModalIcon)
         view: {
             colorsActive: { name: 'highlightRows', type: 'checkbox' },
             colorsSchema: { name: 'selectColorScheme', type: 'select' },
-            itemsAll: { name: 'showAll', type: 'checkbox' }
+            itemsAll: { name: 'showAll', type: 'checkbox' },
+            projectsAll: { name: 'projectsAll', type: 'checkbox' }
         }
     })
 

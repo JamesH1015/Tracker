@@ -77,6 +77,14 @@ let ProjectsList = {
             else { this.loadProject(val) }
             break
 
+        case 'CHANGE_SETTING':
+            let key = request.message.key
+            if (key == 'projectsAll') {
+                this.win.select.clear()
+                this.displayProjects()
+            }
+            break
+
         case 'RETRIEVE_PROJECT':
             return this.project
 
@@ -96,7 +104,7 @@ let ProjectsList = {
 
     store: function (items) {
         this.projects = items
-        this.win.select.render(this.view, this.projects)
+        this.displayProjects()
 
         for (let idx = 0; idx < items.length; idx++) {
             let projID = items[idx][this.view.id]
@@ -107,6 +115,22 @@ let ProjectsList = {
             action: 'READY',
             message: 'ProjectsList'
         })
+    },
+
+    displayProjects: function () {
+        let showAll = UserProfile.action({
+            action: 'RETRIEVE_SETTING',
+            message: 'projectsAll'
+        })
+        let showProjects = []
+        if (!showAll) {
+            for (let idx = 0; idx < this.projects.length; idx++) {
+                if (this.projects[idx].active_BOL) {
+                    showProjects.push(this.projects[idx])
+                }
+            }
+        } else { showProjects = this.projects }
+        this.win.select.render(this.view, showProjects)
     },
 
     queryProjects: function () {
@@ -1180,6 +1204,7 @@ let UserProfile = {
             sessionStorage.setItem('colorsActive', result.profile.colorsActive)
             sessionStorage.setItem('colorsSchema', result.profile.colorsSchema)
             sessionStorage.setItem('itemsAll', result.profile.itemsAll)
+            sessionStorage.setItem('projectsAll', result.profile.projectsAll)
             sessionStorage.setItem('admin', result.admin)
             this.requestPage(result.path)
         } else {
@@ -1199,7 +1224,8 @@ let UserProfile = {
             set: {
                 colorsActive:this.retrieve('colorsActive'),
                 colorsSchema: this.retrieve('colorsSchema'),
-                itemsAll: this.retrieve('itemsAll')
+                itemsAll: this.retrieve('itemsAll'),
+                projectsAll: this.retrieve('projectsAll')
             }
         }
         this.initializeIcon(this.profile.set)
