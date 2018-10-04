@@ -839,8 +839,11 @@ let Parts = {
             items[idx]['_id'] = `new-${this.blankRowIndex}`
             this.blankRowIndex = this.blankRowIndex + 1
         }
-        console.log(items)
         this.win.grid.renderBody(view, items, this.filter, this.colors, true)
+        PartsEditor.action({
+            action: 'STORE_NEW_ITEMS',
+            message: items
+        })
     },
 
     insertBlankRow: function () {
@@ -886,6 +889,7 @@ let PartsEditor = {
         this.query = init.query
 
         this.edits = []
+        this.newItems = []
         this.errors = []
         this.active = false
     },
@@ -897,6 +901,9 @@ let PartsEditor = {
             this.edits.push(request.message)
             this.active = true
             break
+
+        case 'STORE_NEW_ITEMS':
+            this.storeNewItems(request.message)
 
         case 'STORE_ERROR':
             this.errors.push(request.message)
@@ -916,9 +923,54 @@ let PartsEditor = {
             else { this.win.edit.disableInsert() }
             if (request.message.more) { this.win.edit.enableMore() }
             else { this.win.edit.disableMore() }
+            this.edits = []
+            this.errors = []
             this.updates = []
             this.inserts = []
+            this.newItems = []
             break
+        }
+    },
+
+    storeNewItems: function (items) {
+        let view = ViewsList.action({
+            action: 'RETRIEVE_SELECTED_VIEW',
+            message: null
+        })
+        let tform = {}
+        for (let idx = 0; idx < view.columns.length; idx++) {
+            tform[view.columns[idx].field] = view.columns[idx].dtype
+        }
+        let project = ProjectsList.action({
+                action: 'RETRIEVE_PROJECT',
+                message: null
+            })
+
+        let parent = Assemblies.action({
+                action: 'RETRIEVE_PARENT',
+                message:  null
+            })
+        for (let idy = 0; idy < items.length; idy++) {
+            let id = items[idy]._id
+            let newItem = {}
+            for (key in items[idy]) {
+                if (key != '_id') {
+                    let field = key
+                    let data = items[idy][key]
+                    let type = tform[key]
+                    let test = this.win.edit.testNew(id, field, data, type)
+                    if (test.valid) {
+                        newItem[field] = test.value
+                    }
+                }
+            }
+            newItem.proj_ID = project.id
+            newItem.proj_TAG = project.info.proj_TAG
+            newItem.parent_ID = parent.id
+            newItem.parent_TAG = parent.name
+            this.newItems.push(newItem)
+            this.active = true
+            this.win.edit.enableSave()
         }
     },
 
@@ -932,10 +984,10 @@ let PartsEditor = {
             let type = edits[idx].type
             let text = edits[idx].text
             let idARY = id.split('-')
-            if (idARY[0] == 'new') {
+            if (idARY[0] == 'insert') {
                 let idx = idARY[1]
                 if (typeof this.inserts[idx] === 'undefined') {
-                    this.inserts[idx] ={}
+                    this.inserts[idx] = {}
                 }
                 this.inserts[idx][field] = value
             } else {
@@ -946,18 +998,16 @@ let PartsEditor = {
         }
 
         if (this.inserts.length > 0) {
+            let project = ProjectsList.action({
+                    action: 'RETRIEVE_PROJECT',
+                    message: null
+                })
+
+            let parent = Assemblies.action({
+                    action: 'RETRIEVE_PARENT',
+                    message:  null
+                })
             for (let idx = 0; idx < this.inserts.length; idx++) {
-
-                let project = ProjectsList.action({
-                        action: 'RETRIEVE_PROJECT',
-                        message: null
-                    })
-
-                let parent = Assemblies.action({
-                        action: 'RETRIEVE_PARENT',
-                        message:  null
-                    })
-
                 this.inserts[idx].proj_ID = project.id
                 this.inserts[idx].proj_TAG = project.info.proj_TAG
                 this.inserts[idx].parent_ID = parent.id
@@ -965,6 +1015,8 @@ let PartsEditor = {
             }
             this.insertServer(this.inserts)
         }
+
+        if (this.newItems.length > 0) { this.insertServer(this.newItems) }
 
         if (this.updates.length > 0) { this.updateServer(this.updates) }
 
@@ -1044,7 +1096,6 @@ let ImportParts = {
             break
 
         case 'LOAD_IMPORTED_ITEMS':
-            console.log(request.message)
             this.viewTransform(request.message.data)
             break
         }
@@ -1067,7 +1118,6 @@ let ImportParts = {
             }
             items.push(item)
         }
-        console.log(items)
         Parts.action({
             action: 'APPEND_NEW_ITEMS',
             message: items

@@ -394,7 +394,7 @@ let DataGrid = {
         let columns = view.columns
 
         let row = document.createElement('div')
-        row.id = `new-${index}`
+        row.id = `insert-${index}`
         row.className = 'row grid-row border border-top-0'
 
         for (let idy = 0; idy < columns.length; idy++) {
@@ -505,6 +505,18 @@ let GridEdit = {
                 message: this.edit
             })
         }
+    },
+
+    testNew: function (id, field, data, type) {
+        let test = this.validate(data, type)
+        if (test.valid) {
+            $(`#${id} > div[data-field="${field}"]`)
+            .css({ 'background-color': '#00FF00', 'color': '#000000' })
+        } else {
+            $(`#${id} > div[data-field="${field}"]`)
+            .css({ 'background-color': '#FF0000', 'color': '#000000' })
+        }
+        return test
     },
 
     activateButtons: function (insertID, saveID) {
