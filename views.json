@@ -7,17 +7,16 @@
         "dtype": "string", "edit": true },
       { "title": "Mfr", "width": "1", "field": "mfr_STR",
         "dtype": "string", "edit": true },
-      { "title": "Unit Qty", "width": "1", "field": "unit_QTY",
-        "dtype": "number", "edit": true },
-      { "title": "Total Qty", "width": "1", "field": "total_QTY",
+      { "title": "Qty", "width": "1", "field": "total_QTY",
         "dtype": "number", "edit": true },
       { "title": "Vendor", "width": "1", "field": "vendor_STR",
         "dtype": "string", "edit": true },
-      { "title": "Note", "width": "2", "field": "note_STR",
+      { "title": "Note", "width": "3", "field": "note_STR",
         "dtype": "string", "edit": true },
       { "title": "Status", "width": "1", "field": "status_STR",
         "dtype": "string", "edit": true }
-    ]},
+    ],
+    "rules": {}},
     { "name": "Orders", "attributes": { "id": "_id" }, "columns": [
       { "title": "Mfr", "width": "1", "field": "mfr_STR",
         "dtype": "string", "edit": true },
@@ -29,10 +28,10 @@
         "dtype": "string", "edit": true },
       { "title": "Vendor", "width": "1", "field": "vendor_STR",
         "dtype": "string", "edit": true },
-      { "title": "Total Qty", "width": "1", "field": "total_QTY",
+      { "title": "Qty", "width": "1", "field": "total_QTY",
         "dtype": "number", "edit": true },
       { "title": "Unit Price", "width": "1", "field": "unitPrice_CUR",
-        "dtype": "currency", "edit": false },
+        "dtype": "currency", "edit": true },
       { "title": "Total Price", "width": "1", "field": "totalPrice_CUR",
         "dtype": "currency", "edit": false },
       { "title": "PO No.", "width": "1", "field": "partPO_STR",
@@ -43,7 +42,14 @@
         "dtype": "date", "edit": false },
       { "title": "Status", "width": "1", "field": "status_STR",
         "dtype": "string", "edit": true }
-    ]}
+    ],
+    "rules": {
+      "unitPrice_CUR": {
+        "operands": [ "total_QTY", "unitPrice_CUR" ],
+        "function": "return ops[0] * ops[1]",
+        "result": "totalPrice_CUR"
+      }
+    }}
   ],
   "purchasing": [
     { "name": "Parts", "attributes": { "id": "_id" }, "columns": [
@@ -53,17 +59,16 @@
         "dtype": "string", "edit": true },
       { "title": "Mfr", "width": "1", "field": "mfr_STR",
         "dtype": "string", "edit": true },
-      { "title": "Unit Qty", "width": "1", "field": "unit_QTY",
-        "dtype": "number", "edit": true },
-      { "title": "Total Qty", "width": "1", "field": "total_QTY",
+      { "title": "Qty", "width": "1", "field": "total_QTY",
         "dtype": "number", "edit": true },
       { "title": "Vendor", "width": "1", "field": "vendor_STR",
         "dtype": "string", "edit": true },
-      { "title": "Note", "width": "2", "field": "note_STR",
+      { "title": "Note", "width": "3", "field": "note_STR",
         "dtype": "string", "edit": true },
       { "title": "Status", "width": "1", "field": "status_STR",
         "dtype": "string", "edit": true }
-    ]},
+    ],
+    "rules": {}},
     { "name": "Orders", "attributes": { "id": "_id" }, "columns": [
       { "title": "Mfr", "width": "1", "field": "mfr_STR",
         "dtype": "string", "edit": true },
@@ -75,7 +80,7 @@
         "dtype": "string", "edit": true },
       { "title": "Vendor", "width": "1", "field": "vendor_STR",
         "dtype": "string", "edit": true },
-      { "title": "Total Qty", "width": "1", "field": "total_QTY",
+      { "title": "Qty", "width": "1", "field": "total_QTY",
         "dtype": "number", "edit": true },
       { "title": "Unit Price", "width": "1", "field": "unitPrice_CUR",
         "dtype": "currency", "edit": true },
@@ -89,6 +94,13 @@
         "dtype": "date", "edit": true },
       { "title": "Status", "width": "1", "field": "status_STR",
         "dtype": "string", "edit": true }
-    ]}
+    ],
+    "rules": {
+      "unitPrice_CUR": {
+        "operands": [ "total_QTY", "unitPrice_CUR" ],
+        "function": "return ops[0] * ops[1]",
+        "result": "totalPrice_CUR"
+      }
+    }}
   ]
 }

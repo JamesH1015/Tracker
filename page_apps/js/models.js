@@ -769,6 +769,7 @@ let Parts = {
             this.currNodeID = ''
             this.prevNodeID = ''
             this.filter = {}
+            this.blankRowIndex = 0
 
             let view = ViewsList.action({
                 action: 'RETRIEVE_SELECTED_VIEW',
@@ -916,6 +917,7 @@ let PartsEditor = {
         this.newItems = []
         this.errors = []
         this.active = false
+        this.rules = {}
     },
 
     action: function (request) {
@@ -941,6 +943,14 @@ let PartsEditor = {
             this.win.edit.disableInsert()
             break
 
+        case 'DISPLAY_SELECTED_VIEW':
+            this.setRules()
+            break
+
+        case 'APPLY_RULE':
+            this.applyRule(request.message.id, request.message.field, this.edits)
+            break
+
         case 'RESET':
             this.insertActive = request.message.insert
             if (this.insertActive) { this.win.edit.enableInsert() }
@@ -952,6 +962,7 @@ let PartsEditor = {
             this.updates = []
             this.inserts = []
             this.newItems = []
+            this.setRules()
             break
         }
     },
@@ -1009,11 +1020,11 @@ let PartsEditor = {
             let text = edits[idx].text
             let idARY = id.split('-')
             if (idARY[0] == 'insert') {
-                let idx = idARY[1]
-                if (typeof this.inserts[idx] === 'undefined') {
-                    this.inserts[idx] = {}
+                let idno = idARY[1]
+                if (typeof this.inserts[idno] === 'undefined') {
+                    this.inserts[idno] = {}
                 }
-                this.inserts[idx][field] = value
+                this.inserts[idno][field] = value
             } else {
                 let updateItem = { _id: id, set: {} }
                 updateItem.set[field] = value
@@ -1031,13 +1042,19 @@ let PartsEditor = {
                     action: 'RETRIEVE_PARENT',
                     message:  null
                 })
+            let insertItems = []
             for (let idx = 0; idx < this.inserts.length; idx++) {
-                this.inserts[idx].proj_ID = project.id
-                this.inserts[idx].proj_TAG = project.info.proj_TAG
-                this.inserts[idx].parent_ID = parent.id
-                this.inserts[idx].parent_TAG = parent.name
+                let item = {}
+                if (typeof this.inserts[idx] != 'undefined') {
+                    item = this.inserts[idx]
+                    item.proj_ID = project.id
+                    item.proj_TAG = project.info.proj_TAG
+                    item.parent_ID = parent.id
+                    item.parent_TAG = parent.name
+                }
+                insertItems.push(item)
             }
-            this.insertServer(this.inserts)
+            this.insertServer(insertItems)
         }
 
         if (this.newItems.length > 0) { this.insertServer(this.newItems) }
@@ -1103,6 +1120,34 @@ let PartsEditor = {
             this.win.message.display('ERROR: Parts Editor save failed!')
         }
         this.inserts = []
+    },
+
+    setRules: function () {
+        let view = ViewsList.action({
+            action: 'RETRIEVE_SELECTED_VIEW',
+            message: null
+        })
+        this.rules = view.rules
+        console.log(this.rules)
+    },
+
+    applyRule: function (id, field, edits) {
+        if (field in this.rules) {
+            let rule = this.rules[field]
+            let operands = [] //  this.rule[field].operands
+            for (let idx = 0; idx < rule.operands.length; idx++) {
+                for (let idy = 0; idy < this.edits.length; idy++) {
+                    if ((edits[idy].field == rule.operands[idx])
+                     && (edits[idy].id == id)) {
+                        operands[idx] = edits[idy].value
+                    }
+                }
+            }
+            console.log(operands)
+            let func = new Function('ops', rule.function)
+            let result = func(operands)
+            console.log(result)
+        }
     }
 }
 

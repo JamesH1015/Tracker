@@ -485,7 +485,13 @@ let GridEdit = {
 
     //  Edit Field Focusout Event
         $(id).focusout( (event) => {
-            if (this.input.active) { this.testInput() }
+            if (this.input.active) {
+                this.testInput()
+                Dispatch({
+                    action: 'APPLY_RULE',
+                    message: { id: this.edit.id, field: this.edit.field }
+                })
+            }
             this.input.active = false
         })
     },
