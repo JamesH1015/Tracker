@@ -496,6 +496,12 @@ let GridEdit = {
         })
     },
 
+    setValue: function (id, field, data) {
+        $(`#${id} > div[data-field="${field}"]`).html(data)
+        let type = $(`#${id} > div[data-field="${field}"]`).attr('data-type')
+        this.testNew(id, field, data.toString(), type)
+    },
+
     testInput: function () {
         let test = this.validate(this.input.text, this.item.type)
         if (test.valid) {

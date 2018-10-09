@@ -1128,7 +1128,6 @@ let PartsEditor = {
             message: null
         })
         this.rules = view.rules
-        console.log(this.rules)
     },
 
     applyRule: function (id, field, edits) {
@@ -1143,10 +1142,14 @@ let PartsEditor = {
                     }
                 }
             }
-            console.log(operands)
             let func = new Function('ops', rule.function)
             let result = func(operands)
-            console.log(result)
+            this.win.edit.setValue(id, rule.result, result)
+            this.edits.push({
+                id: id,
+                field: rule.result,
+                value: result
+            })
         }
     }
 }

@@ -33,7 +33,7 @@
       { "title": "Unit Price", "width": "1", "field": "unitPrice_CUR",
         "dtype": "currency", "edit": true },
       { "title": "Total Price", "width": "1", "field": "totalPrice_CUR",
-        "dtype": "currency", "edit": false },
+        "dtype": "currency", "edit": true },
       { "title": "PO No.", "width": "1", "field": "partPO_STR",
         "dtype": "string", "edit": false },
       { "title": "Order Date", "width": "1", "field": "order_TS",
