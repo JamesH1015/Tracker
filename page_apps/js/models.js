@@ -150,6 +150,10 @@ let ProjectsList = {
             action: 'RESET',
             message: null
         })
+        ProjectsQuery.action({
+            action: 'RESET',
+            message: null
+        })
     },
 
     loadProject: function (val) {
@@ -237,16 +241,24 @@ let ProjectsQuery = {
         this.win = init.win
         this.query = init.query
         this.view = init.view
+        this.projects = null
+        this.projectID = null
     },
 
     action: function (request) {
         switch (request.action) {
 
         case 'RETRIEVE_PROJECT_ITEMS':
+            this.projectID = request.message
             return this.projects[request.message]
 
         case 'RETRIEVE_ALL_PROJECT_ITEMS':
             return this.items
+
+        case 'UPDATE_PROJECT_ITEMS':
+            if (this.projects != null) {
+                return this.updateProjectItems(request.message)
+            } else { return null }
 
         case 'QUERY_PROJECTS':
             let inputs = request.message
@@ -255,6 +267,11 @@ let ProjectsQuery = {
                 if (inputs[key] != '') { find[key] = inputs[key] }
             }
             this.queryServer(find)
+            break
+
+        case 'RESET':
+            this.projects = null
+            this.projectID = null
             break
         }
     },
@@ -276,6 +293,21 @@ let ProjectsQuery = {
             idx++
         }
         this.displayProjects()
+    },
+
+    updateProjectItems: function (items) {
+        for (let idx = 0; idx < items.length; idx++) {
+            let set = items[idx].set
+            for (key in set) {
+                let projARY = this.projects[this.projectID]
+                for (let idy = 0; idy < projARY.length; idy++) {
+                    if (items[idx]._id == projARY[idy]._id) {
+                        this.projects[this.projectID][idy][key] = set[key]
+                    }
+                }
+            }
+        }
+        return this.projectID
     },
 
     displayProjects: function () {
@@ -322,6 +354,7 @@ let ProjectItems = {
         this.win = init.win
         this.query = init.query
         this.view = init.view
+        this.ancestors = null
     },
 
     action: function (request) {
@@ -340,7 +373,9 @@ let ProjectItems = {
             return this.retrieveAllItems(request.message)
 
         case 'UPDATE_NODE_LEAFS':
-            return this.updateNodeLeafs(request.message)
+            if (this.ancestors != null) {
+                return this.updateNodeLeafs(request.message)
+            } else { return null }
 
         case 'INSERT_NODE_LEAFS':
             return this.insertNodeLeafs(request.message)
@@ -350,7 +385,7 @@ let ProjectItems = {
             break
 
         case 'RESET':
-            this.ancestors = {}
+            this.ancestors = null
             break
         }
     },
@@ -1108,8 +1143,19 @@ let PartsEditor = {
                 action: 'UPDATE_NODE_LEAFS',
                 message: this.updates
             })
+            let projectID = ProjectsQuery.action({
+                action: 'UPDATE_PROJECT_ITEMS',
+                message: this.updates
+            })
             this.saveActive.update = false
-            this.displaySavedItems(parentID)
+            if (parentID != null) {
+                this.displaySavedItems(parentID)
+            } else if (projectID != null) {
+                Parts.action({
+                    action: 'DISPLAY_SELECTED_PROJECT_ITEMS',
+                    message: projectID
+                })
+            }
         } else {
             this.win.message.display('ERROR: Parts Editor save failed!')
         }
