@@ -340,12 +340,10 @@ let ProjectItems = {
             return this.retrieveAllItems(request.message)
 
         case 'UPDATE_NODE_LEAFS':
-            this.updateNodeLeafs(request.message)
-            break
+            return this.updateNodeLeafs(request.message)
 
         case 'INSERT_NODE_LEAFS':
-            this.insertNodeLeafs(request.message)
-            break
+            return this.insertNodeLeafs(request.message)
 
         case 'INSERT_NEW_NODE':
             this.insertNewNode(request.message)
@@ -454,10 +452,7 @@ let ProjectItems = {
                 }
             }
         }
-        Parts.action({
-            action: 'DISPLAY_SELECTED_NODE_ITEMS',
-            message: parent.id
-        })
+        return parent.id
     },
 
     insertNodeLeafs: function (inserts) {
@@ -468,10 +463,7 @@ let ProjectItems = {
         for (let idx = 0; idx < inserts.length; idx++) {
             this.ancestors[parent.id].leafs.push(inserts[idx])
         }
-        Parts.action({
-            action: 'DISPLAY_SELECTED_NODE_ITEMS',
-            message: parent.id
-        })
+        return parent.id
     },
 
     insertNewNode: function (node) {
@@ -917,6 +909,7 @@ let PartsEditor = {
         this.newItems = []
         this.errors = []
         this.active = false
+        this.saveActive = { update: false, insert: false }
         this.rules = {}
     },
 
@@ -962,6 +955,9 @@ let PartsEditor = {
             this.updates = []
             this.inserts = []
             this.newItems = []
+            this.active = false
+            this.saveActive.update = false
+            this.saveActive.insert = false
             this.setRules()
             break
         }
@@ -1057,9 +1053,15 @@ let PartsEditor = {
             this.insertServer(insertItems)
         }
 
-        if (this.newItems.length > 0) { this.insertServer(this.newItems) }
+        if (this.newItems.length > 0) {
+            this.saveActive.insert = true
+            this.insertServer(this.newItems)
+        }
 
-        if (this.updates.length > 0) { this.updateServer(this.updates) }
+        if (this.updates.length > 0) {
+            this.saveActive.update = true
+            this.updateServer(this.updates)
+        }
 
         this.edits = []
         this.errors = []
@@ -1102,24 +1104,39 @@ let PartsEditor = {
 
     updateProjectItems: function (result) {
         if (result.ok > 0) {
-            ProjectItems.action({
+            let parentID = ProjectItems.action({
                 action: 'UPDATE_NODE_LEAFS',
                 message: this.updates
             })
+            this.saveActive.update = false
+            this.displaySavedItems(parentID)
+        } else {
+            this.win.message.display('ERROR: Parts Editor save failed!')
         }
         this.updates = []
     },
 
     insertProjectItems: function (result) {
         if (result.inserted) {
-            ProjectItems.action({
+            let parentID = ProjectItems.action({
                 action: 'INSERT_NODE_LEAFS',
                 message: result.items
             })
+            this.saveActive.insert = false
+            this.displaySavedItems(parentID)
         } else {
             this.win.message.display('ERROR: Parts Editor save failed!')
         }
         this.inserts = []
+    },
+
+    displaySavedItems: function (parentID) {
+        if ((!this.saveActive.update) && (!this.saveActive.insert)) {
+            Parts.action({
+                action: 'DISPLAY_SELECTED_NODE_ITEMS',
+                message: parentID
+            })
+        }
     },
 
     setRules: function () {
