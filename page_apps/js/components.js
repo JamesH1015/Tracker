@@ -671,18 +671,38 @@ let NavigationBar = {
 
     initialize: function (init) {
         this.navLinks = init.navLinks
+        this.sideToggle = init.sideToggle
+        this.navSidebar = init.navSidebar
+        this.mainContent = init.mainContent
+        this.sidebar = true
 
         $(this.navLinks).click( (event) => {
-            event.preventDefault();
-            let href = $(event.target).attr('href');
+            event.preventDefault()
+            let href = $(event.target).attr('href')
             if (href.indexOf('#') == 0) {
-                $(href).modal();
+                $(href).modal()
             }
         })
+
+        $(this.sideToggle).click( () => { this.toggleSidebar() })
+    },
+
+    toggleSidebar: function () {
+        if (this.sidebar) {
+            $(this.navSidebar).removeClass('d-sm-block')
+            $(this.mainContent).removeClass('col-sm-9 col-md-10 ml-sm-auto')
+            $(this.mainContent).addClass('col-12')
+            this.sidebar = false
+        } else {
+            $(this.navSidebar).addClass('d-sm-block')
+            $(this.mainContent).removeClass('col-12')
+            $(this.mainContent).addClass('col-sm-9 col-md-10 ml-sm-auto')
+            this.sidebar = true
+        }
     }
 }
 
-let ModalIcon = {
+let ModalSettings = {
 
     initialize: function (init) {
         this.checkBox = init.checkBox

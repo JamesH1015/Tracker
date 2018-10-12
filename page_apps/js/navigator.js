@@ -9,7 +9,10 @@ let Page = Object.create(HTMLDoc)
 let Menu = Object.create(NavigationBar)
 
     Menu.initialize({
-        navLinks: '.navbar-brand, .nav-link, .dropdown-item'
+        navLinks: '.navbar-brand, .nav-link, .dropdown-item',
+        sideToggle: '#btn-side-toggle',
+        navSidebar: '#nav-sidebar',
+        mainContent: '#main-content'
     })
 
 let Message = Object.create(ModalMessage)
@@ -69,9 +72,9 @@ let Reset = Object.create(ResetButton)
     })
 
 /** UserProfile **/
-let Icon = Object.create(ModalIcon)
+let Settings = Object.create(ModalSettings)
 
-    Icon.initialize({
+    Settings.initialize({
         checkBox: {
             highlightRows: '#check-highlight-rows',
             showAll: '#check-show-all',
@@ -83,7 +86,7 @@ let Icon = Object.create(ModalIcon)
     })
 
     UserProfile.initialize({
-        win: { icon: Icon },
+        win: { icon: Settings },
         query: { path: '/navigator/users' },
         view: {
             colorsActive: { name: 'highlightRows', type: 'checkbox' },

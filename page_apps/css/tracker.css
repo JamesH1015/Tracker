@@ -4,13 +4,8 @@
  */
 
 body {
-  padding-top: 58px;
+  padding-top: 56px;
   padding-bottom: 28px;
-}
-
-img.brand {
-  width: 30px;
-  height: 30px;
 }
 
 .jumbotron {
@@ -25,7 +20,7 @@ input:focus, button:focus {
 
 .nav-sidebar {
   position: fixed;
-  top: 58px;
+  top: 56px;
   bottom: 28px;
   left: 0;
   z-index: 1000;
@@ -54,7 +49,7 @@ footer {
 }
 
 .grid-header {
-  top: 58px;
+  top: 56px;
   z-index: 1;
 }
 
