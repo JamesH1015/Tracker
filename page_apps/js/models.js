@@ -1196,23 +1196,32 @@ let PartsEditor = {
     applyRule: function (id, field, edits) {
         if (field in this.rules) {
             let rule = this.rules[field]
-            let operands = [] //  this.rule[field].operands
-            for (let idx = 0; idx < rule.operands.length; idx++) {
-                for (let idy = 0; idy < this.edits.length; idy++) {
-                    if ((edits[idy].field == rule.operands[idx])
-                     && (edits[idy].id == id)) {
-                        operands[idx] = edits[idy].value
+            for (let idz = 0; idz < rule.length; idz++) {
+                let operands = [] //  this.rule[field].operands
+                for (let idx = 0; idx < rule[idz].operands.length; idx++) {
+                    operands[idx] = null
+                    for (let idy = 0; idy < this.edits.length; idy++) {
+                        if ((edits[idy].field == rule[idz].operands[idx])
+                         && (edits[idy].id == id)) {
+                            operands[idx] = edits[idy].value
+                        }
+                    }
+                    if (operands[idx] == null) {
+                        let gridField = rule[idz].operands[idx]
+                        operands[idx] = this.win.edit.retrieveValue(id, gridField)
                     }
                 }
+                let func = new Function('ops', rule[idz].function)
+                let result = func(operands)
+                if (result != null) {
+                    this.win.edit.setValue(id, rule[idz].result, result)
+                    this.edits.push({
+                        id: id,
+                        field: rule[idz].result,
+                        value: result
+                    })
+                }
             }
-            let func = new Function('ops', rule.function)
-            let result = func(operands)
-            this.win.edit.setValue(id, rule.result, result)
-            this.edits.push({
-                id: id,
-                field: rule.result,
-                value: result
-            })
         }
     }
 }

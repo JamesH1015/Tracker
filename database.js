@@ -152,7 +152,15 @@ function parse (type, value) {
     case 'currency':
         return Number(value)
     case 'date':
-        return value
+        let strARY = []
+        if (/-/.test(value)) { strARY = value.split('-') }
+        if (/\//.test(value)) { strARY = value.split('/') }
+        let month = parseInt(strARY[0] - 1)
+        let date = parseInt(strARY[1])
+        let year = ''
+        if (strARY[2].length === 2) { year = parseInt('20' + strARY[2]) }
+        else { year = parseInt(strARY[2]) }
+        return new Date(year, month, date).getTime()
     }
     return value
 }

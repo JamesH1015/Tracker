@@ -502,6 +502,10 @@ let GridEdit = {
         this.testNew(id, field, data.toString(), type)
     },
 
+    retrieveValue: function (id, field) {
+        return $(`#${id} > div[data-field="${field}"]`).text()
+    },
+
     testInput: function () {
         let test = this.validate(this.input.text, this.item.type)
         if (test.valid) {
@@ -612,18 +616,8 @@ let GridEdit = {
             var regExp3 = /^(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])-(?:[0-9]{2})?[0-9]{2}$/;
             var regExp4 = /^(1[0-2]|0?[1-9])\/(3[01]|[12][0-9]|0?[1-9])\/(?:[0-9]{2})?[0-9]{2}$/;
             let test3 = (regExp3.test(data)) || (regExp4.test(data))
-            if (test3) {
-                let strARY = [ ]
-                if (/-/.test(data)) { strARY = data.split('-') }
-                if (/\//.test(data)) { strARY = data.split('/') }
-                let month = parseInt(strARY[0] - 1)
-                let date = parseInt(strARY[1])
-                let year = ''
-                if (strARY[2].length === 2) { year = parseInt('20' + strARY[2]) }
-                else { year = parseInt(strARY[2]) }
-                let newData = new Date(year, month, date).getTime()
-                return { valid: test3, value: newData }
-            } else { return { valid: test3, value: null } }
+            if (test3) { return { valid: test3, value: data } }
+            else { return { valid: test3, value: null } }
             break
         }
     }
