@@ -359,6 +359,15 @@ let DataGrid = {
                 }
             }
 
+        //  Find row status
+            let status = ''
+            for (let idc = 0; idc < columns.length; idc++) {
+                if (columns[idc].field == 'status_STR') {
+                    status = rows[idx][columns[idc].field]
+                }
+            }
+            if (status == undefined) { status = '' }
+
         //  Create row columns
             let filterRowMatch = true  // Set filter row match condition
             for (let idy = 0; idy < columns.length; idy++) {
@@ -367,7 +376,15 @@ let DataGrid = {
                 col.className = `col-${colAttr.width} data`
                 col.setAttribute('data-field', colAttr.field)
                 col.setAttribute('data-type', colAttr.dtype)
-                col.contentEditable = colAttr.edit
+                let applyEdit = true
+                if (colAttr.rule != null) {
+                    applyEdit = false
+                    for (let idz = 0; idz < colAttr.rule.length; idz++) {
+                        if (status == colAttr.rule[idz]) { applyEdit = true }
+                    }
+                }
+                if (applyEdit) { col.contentEditable = colAttr.edit }
+                else { col.contentEditable = false }
                 let datum = rows[idx][colAttr.field]
                 let text = this.formatData(datum, colAttr.dtype)
                 col.textContent = text
