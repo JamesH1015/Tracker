@@ -61,7 +61,7 @@ let ProjectsList = {
         this.query = init.query
         this.projects = []
         this.info = {}
-        this.project = {}
+        this.project = null
     },
 
     action: function (request) {
@@ -97,6 +97,7 @@ let ProjectsList = {
             }
 
         case 'RESET':
+            this.project = null
             this.win.select.set('null')
             break
         }
@@ -157,8 +158,7 @@ let ProjectsList = {
     },
 
     loadProject: function (val) {
-        this.project.id = val
-        this.project.info = this.info[val]
+        this.project = { id: val, info: this.info[val] }
 
         ProjectItems.action({
             action: 'QUERY_PROJECT_DATA',
@@ -444,7 +444,7 @@ let ProjectItems = {
 
         while (nodes.length > 0) {
             let nextNode = nodes.pop()
-            let nextNodeID = nextNode[this.idKEY]
+            let nextNodeID = nextNode[this.view.id]
             let newItems = items.concat(this.ancestors[nextNodeID].leafs)
             let newNodes = nodes.concat(this.ancestors[nextNodeID].nodes)
             items = newItems
@@ -783,7 +783,7 @@ let Parts = {
         case 'CHANGE_SETTING':
             let key = request.message.key
             if (key == 'highlightRows') { this.displayView(this.items) }
-            if (key == 'showAll') { this.store(this.currNodeID) }
+            if (key == 'showAll') { this.storeNodeItems(this.currNodeID) }
             break
 
         case 'INSERT_BLANK_ROW':
@@ -821,23 +821,28 @@ let Parts = {
     },
 
     storeNodeItems: function (nodeID) {
-        let retrieveAll = UserProfile.action({
-            action: 'RETRIEVE_SETTING',
-            message: 'itemsAll'
+        let proj = ProjectsList.action({
+            action: 'RETRIEVE_PROJECT',
+            message: null
         })
-        if (retrieveAll) {
-            this.items = ProjectItems.action({
-                action: 'RETRIEVE_ALL_NODE_ITEMS',
-                message: nodeID
+        if (proj != null) {
+            let retrieveAll = UserProfile.action({
+                action: 'RETRIEVE_SETTING',
+                message: 'itemsAll'
             })
-        } else {
-            this.items = ProjectItems.action({
-                action: 'RETRIEVE_NODE_ITEMS_BY_TYPE',
-                message: { id: nodeID, type: 'leafs' }
-            })
+            if (retrieveAll) {
+                this.items = ProjectItems.action({
+                    action: 'RETRIEVE_ALL_NODE_ITEMS',
+                    message: nodeID
+                })
+            } else {
+                this.items = ProjectItems.action({
+                    action: 'RETRIEVE_NODE_ITEMS_BY_TYPE',
+                    message: { id: nodeID, type: 'leafs' }
+                })
+            }
+            this.displayView(this.items)
         }
-
-        this.displayView(this.items)
     },
 
     storeProjectItems: function (projID) {
