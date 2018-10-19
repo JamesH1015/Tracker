@@ -1259,18 +1259,60 @@ let ImportParts = {
         for (let idx = 0; idx < view.columns.length; idx++) {
             tform[view.columns[idx].title] = view.columns[idx].field
         }
-        let items = []
+        let asmbs = {}
+        let asmbFlag = false
+        let asmbIndex = ''
+        let index = ''
+        let indexARY = []
+        let indexLEN = 0
+        let prevItem = { INDEX: '0' }
+        let prevIndex = '0'
+        let prevIndexLEN = 1
         for (let idy = 0; idy < data.length; idy++) {
             let item = {}
             for (key in data[idy]) {
-                item[tform[key]] = data[idy][key]
+                if (key == 'INDEX') {
+                    index = '0.' + data[idy][key]
+                    indexARY = index.split('.')
+                    indexLEN = indexARY.length
+                    if (indexLEN > prevIndexLEN) { asmbFlag = true }
+                    else { asmbFlag = false }
+                } else {
+                    item[tform[key]] = data[idy][key]
+                }
             }
-            items.push(item)
+            if (asmbFlag) {
+                prevItem.parts = []
+                asmbs[prevIndex] = prevItem
+            } else {
+                let prevIndexARY = prevIndex.split('.')
+                let asmbIndex = prevIndexARY[0]
+                for (let idz = 1; idz < prevIndexARY.length - 1; idz++) {
+                    asmbIndex = asmbIndex + '.' + prevIndexARY[idz]
+                }
+                if (asmbIndex in asmbs) {
+                    asmbs[asmbIndex].parts.push(prevItem)
+                }
+            }
+            prevItem = item
+            prevIndex = index
+            prevIndexLEN = indexLEN
+            if (idy == data.length - 1) {
+                let indexARY = index.split('.')
+                let asmbIndex = indexARY[0]
+                for (let idr = 1; idr < indexARY.length - 1; idr++) {
+                    asmbIndex = asmbIndex + '.' + prevIndexARY[idr]
+                }
+                if (asmbIndex in asmbs) {
+                    asmbs[asmbIndex].parts.push(item)
+                }
+            }
         }
-        Parts.action({
-            action: 'APPEND_NEW_ITEMS',
-            message: items
-        })
+        console.log(asmbs)
+        //Parts.action({
+        //    action: 'APPEND_NEW_ITEMS',
+        //    message: items
+        //})
     }
 }
 
