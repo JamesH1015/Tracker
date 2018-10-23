@@ -777,6 +777,45 @@ let ModalAddNode = {
     }
 }
 
+let ModalAddMultiNodes = {
+
+    initialize: function (init) {
+        this.parentHd = init.parentHd
+        this.listID = init.listID
+        this.saveBtn = init.saveBtn
+        this.modal = init.modal
+
+        $(this.saveBtn).click( () => {
+            Dispatch({
+                action: 'SAVE_MUTLI_ASSEMBLIES',
+                message: null
+            })
+        })
+    },
+
+    displayModal: function () {
+        $(this.lisID).empty()
+        $(this.modal).modal()
+    },
+
+    closeModal: function () {
+        $(this.modal).modal('hide')
+    },
+
+    displaySelected: function (name) {
+        $(this.parentHd).empty()
+        $(this.parentHd).append(name)
+    },
+
+    appendList: function (numb, dscr, parts) {
+        let html = `<li class="list-group-item list-group-item-success">`
+            + `<div class="d-flex justify-content-between align-items-center">`
+            + `<h5>${numb}</h5><span class="badge badge-primary badge-pill">`
+            + `${parts}</span></div>${dscr}</li>`
+        $(this.listID).append(html)
+    }
+}
+
 let ModalImport = {
 
     initialize: function (init) {

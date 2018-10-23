@@ -115,7 +115,9 @@
 
         //  Convert ID Strings to Objects
             api.insert[idx].proj_ID = ObjectId(api.insert[idx].proj_ID)
-            api.insert[idx].parent_ID = ObjectId(api.insert[idx].parent_ID)
+            if ('parent_ID' in api.insert[idx]) {
+                api.insert[idx].parent_ID = ObjectId(api.insert[idx].parent_ID)
+            }
 
         //  Update Timestamp
             api.insert[idx].insert_TS = new Date()
@@ -145,6 +147,8 @@
 
 function parse (type, value) {
     switch (type) {
+    case 'id':
+        return ObjectId(value)
     case 'string':
         return value
     case 'number':

@@ -543,6 +543,14 @@ let Assemblies = {
             this.addAssembly(request.message.name, request.message.desc)
             break
 
+        case 'ADD_NEW_ASSEMBLIES':
+            this.addMultipleAssemblies(request.message)
+            break
+
+        case 'SAVE_MUTLI_ASSEMBLIES':
+            this.saveMultipleAssemblies()
+            break
+
         case 'RESET':
             this.rootID = null
             this.nodes = {}
@@ -668,14 +676,78 @@ let Assemblies = {
         this.queryServer(inserts)
     },
 
-    queryServer: function (inserts) {
+    addMultipleAssemblies: function (asmbs) {
+        this.win.addMulti.displaySelected(this.nodes[this.now.id].name)
+        for (key in asmbs) {
+            if (key != 0) {
+                let partNum = asmbs[key].info.part_TAG
+                let descr = asmbs[key].info.dscr_STR
+                let parts = asmbs[key].parts.length
+                this.win.addMulti.appendList(partNum, descr, parts)
+            }
+        }
+        this.win.addMulti.displayModal()
+    },
+
+    saveMultipleAssemblies: function () {
+        let parentId = this.now.id
+        let parentName = this.nodes[parentId].name
+
+        let project = ProjectsList.action({
+            action: 'RETRIEVE_PROJECT',
+            message: null
+        })
+
+        let asmbs = ImportParts.action({
+            action: 'GET_IMPORTED_ASSEMBLIES',
+            message: null
+        })
+
+        this.win.addMulti.closeModal()
+
+        let idx = 2
+        let act = true
+        let inserts = []
+        while (act) {
+            let keyReal = false
+            for (key in asmbs) {
+                keyARY = key.split('.')
+                if (keyARY.length == idx) {
+                    keyReal = true
+                    let parentIDX = keyARY[0]
+                    for (let idz = 1; idz < keyARY.length - 1; idz++) {
+                        parentIDX = parentIDX + '.' + keyARY[idz]
+                    }
+                    let assembly = asmbs[key].info
+                    if (parentIDX == 0) {
+                        assembly.parent_TAG = parentName
+                    } else {
+                        assembly.parent_TAG = asmbs[parentIDX].info.part_TAG
+                    }
+                    assembly.proj_ID = project.id
+                    assembly.proj_TAG = project.info.proj_TAG
+                    assembly.type_STR = 'assembly'
+                    inserts.push(assembly)
+                }
+            }
+            idx++
+            if (!keyReal) { act = false }
+        }
+
+        this.queryServer(inserts)
+    },
+
+    queryServer: function (inserts, multi) {
         let query = { insert: inserts }
         let ajaxOBJ = {
             method: 'POST', url: this.query.path,
             data: query, dataType: 'json'
         }
         $.ajax(ajaxOBJ).done( (result) => {
-            if (result != null) { this.insertProjectItems(result) }
+            if (result != null) {
+                if (result.items.length > 1) { this.updateAssemblies(result) }
+                else { this.insertProjectItems(result) }
+            }
             else {
                 this.win.message.display('ERROR: Assembly Insert failed.')
             }
@@ -695,6 +767,60 @@ let Assemblies = {
         } else {
             this.win.message.display('ERROR: Add Assembly save failed!')
         }
+    },
+
+    updateAssemblies: function (result) {
+        if (result.inserted) {
+            let updates = []
+            let selcParentId = this.now.id
+            let selcParent = this.nodes[selcParentId].name
+            for (let idx = 0; idx < result.items.length; idx++) {
+                let part = result.items[idx].part_TAG
+                let partId = result.items[idx]._id
+                let parent = result.items[idx].parent_TAG
+                let parentId = null
+                for (let idy = 0; idy < result.items.length; idy++) {
+                    if (result.items[idy].part_TAG == parent) {
+                        parentId = result.items[idy]._id
+                    }
+                }
+                if (parentId == null) { parentId = selcParentId }
+                let item = { _id: partId, set: { } }
+                item.set.parent_ID = parentId
+                updates.push(item)
+            }
+            console.log(updates)
+            this.updateServer(updates)
+        } else {
+            this.win.message.display('ERROR: Add Assembly save failed!')
+        }
+    },
+
+    updateServer: function (updates) {
+        let query = { update: updates }
+        let ajaxOBJ = {
+            method: 'PUT', url: this.query.path,
+            data: query, dataType: 'json'
+        }
+        $.ajax(ajaxOBJ).done( (result) => {
+            if (result != null) {
+                console.log(result)
+                let project = ProjectsList.action({
+                    action: 'RETRIEVE_PROJECT',
+                    message: null
+                })
+                ProjectItems.action({
+                    action: 'QUERY_PROJECT_DATA',
+                    message: project.id
+                })
+            }
+            else {
+                this.win.message.display('ERROR: Asemblies Update failed.')
+            }
+        })
+        .fail( () => {
+            this.win.message.display('ERROR: Asemblies AJAX request failed!')
+        })
     },
 
     insertNode: function (node) {
@@ -1235,6 +1361,7 @@ let ImportParts = {
 
     initialize: function (init) {
         this.win = init.win
+        this.asmbs = {}
     },
 
     action: function (request) {
@@ -1247,6 +1374,9 @@ let ImportParts = {
         case 'LOAD_IMPORTED_ITEMS':
             this.viewTransform(request.message.data)
             break
+
+        case 'GET_IMPORTED_ASSEMBLIES':
+        return this.asmbs
         }
     },
 
@@ -1259,7 +1389,27 @@ let ImportParts = {
         for (let idx = 0; idx < view.columns.length; idx++) {
             tform[view.columns[idx].title] = view.columns[idx].field
         }
-        let asmbs = {}
+        if ('INDEX' in data[0]) { this.parseAssemblies(tform, data) }
+        else { this.parseItems(tform, data) }
+    },
+
+    parseItems: function (tform, data) {
+        let items = []
+        for (let idy = 0; idy < data.length; idy++) {
+            let item = {}
+            for (key in data[idy]) {
+                item[tform[key]] = data[idy][key]
+            }
+            items.push(item)
+        }
+        Parts.action({
+            action: 'APPEND_NEW_ITEMS',
+            message: items
+        })
+    },
+
+    parseAssemblies: function (tform, data) {
+        this.asmbs = {}
         let asmbFlag = false
         let asmbIndex = ''
         let index = ''
@@ -1282,16 +1432,17 @@ let ImportParts = {
                 }
             }
             if (asmbFlag) {
-                prevItem.parts = []
-                asmbs[prevIndex] = prevItem
+                this.asmbs[prevIndex] = {}
+                this.asmbs[prevIndex].info = prevItem
+                this.asmbs[prevIndex].parts = []
             } else {
                 let prevIndexARY = prevIndex.split('.')
                 let asmbIndex = prevIndexARY[0]
                 for (let idz = 1; idz < prevIndexARY.length - 1; idz++) {
                     asmbIndex = asmbIndex + '.' + prevIndexARY[idz]
                 }
-                if (asmbIndex in asmbs) {
-                    asmbs[asmbIndex].parts.push(prevItem)
+                if (asmbIndex in this.asmbs) {
+                    this.asmbs[asmbIndex].parts.push(prevItem)
                 }
             }
             prevItem = item
@@ -1303,16 +1454,15 @@ let ImportParts = {
                 for (let idr = 1; idr < indexARY.length - 1; idr++) {
                     asmbIndex = asmbIndex + '.' + prevIndexARY[idr]
                 }
-                if (asmbIndex in asmbs) {
-                    asmbs[asmbIndex].parts.push(item)
+                if (asmbIndex in this.asmbs) {
+                    this.asmbs[asmbIndex].parts.push(item)
                 }
             }
         }
-        console.log(asmbs)
-        //Parts.action({
-        //    action: 'APPEND_NEW_ITEMS',
-        //    message: items
-        //})
+        Assemblies.action({
+            action: 'ADD_NEW_ASSEMBLIES',
+            message: this.asmbs
+        })
     }
 }
 

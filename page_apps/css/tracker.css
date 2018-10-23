@@ -68,3 +68,7 @@ footer {
   word-break: break-word;
   font-size: 14px;
 }
+
+#modal-add-multi-nodes {
+  overflow-y: auto;
+}

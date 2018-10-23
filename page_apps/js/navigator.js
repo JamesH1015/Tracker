@@ -163,8 +163,17 @@ let AddAssembly = Object.create(ModalAddNode)
         modal: '#modal-add-node'
     })
 
+let AddMultiAssemblies = Object.create(ModalAddMultiNodes)
+    AddMultiAssemblies.initialize({
+        parentHd: '#add-multi-nodes-parent',
+        listID: '#add-multi-nodes-list',
+        saveBtn: '#add-multi-nodes-save',
+        modal: '#modal-add-multi-nodes'
+    })
+
     Assemblies.initialize({
-        win: { sidebar: SideBar, message: Message, add: AddAssembly },
+        win: { sidebar: SideBar, message: Message,
+            add: AddAssembly, addMulti: AddMultiAssemblies },
         view: { id: '_id', parent: 'parent_ID',
             name: 'part_TAG', desc: 'dscr_STR'
         },
