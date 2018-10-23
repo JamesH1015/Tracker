@@ -516,6 +516,7 @@ let Assemblies = {
         this.win = init.win
         this.view = init.view
         this.query = init.query
+        this.import = { insert: false, update: false }
     },
 
     action: function (request) {
@@ -557,6 +558,7 @@ let Assemblies = {
             this.old = { id: null, level: null }
             this.now = { id: null, level: null }
             this.win.sidebar.clearNodes()
+            this.import = { insert: false, update: false }
             break
         }
     },
@@ -678,8 +680,15 @@ let Assemblies = {
 
     addMultipleAssemblies: function (asmbs) {
         this.win.addMulti.displaySelected(this.nodes[this.now.id].name)
+        let parentId = this.now.id
+        let parentName = this.nodes[parentId].name
         for (key in asmbs) {
-            if (key != 0) {
+            if (key == 0) {
+                let partNum = parentName
+                let descr = ''
+                let parts = asmbs[key].parts.length
+                this.win.addMulti.appendList(partNum, descr, parts)
+            } else {
                 let partNum = asmbs[key].info.part_TAG
                 let descr = asmbs[key].info.dscr_STR
                 let parts = asmbs[key].parts.length
@@ -737,7 +746,7 @@ let Assemblies = {
         this.queryServer(inserts)
     },
 
-    queryServer: function (inserts, multi) {
+    queryServer: function (inserts) {
         let query = { insert: inserts }
         let ajaxOBJ = {
             method: 'POST', url: this.query.path,
@@ -771,9 +780,54 @@ let Assemblies = {
 
     updateAssemblies: function (result) {
         if (result.inserted) {
-            let updates = []
+
+            let project = ProjectsList.action({
+                action: 'RETRIEVE_PROJECT',
+                message: null
+            })
+
+            let asmbs = ImportParts.action({
+                action: 'GET_IMPORTED_ASSEMBLIES',
+                message: null
+            })
+
+        //  Insert parts into assemblies
+            let inserts = []
+            for (let idz = 0; idz < result.items.length; idz++) {
+                let asmbId = result.items[idz]._id
+                let asmbName = result.items[idz].part_TAG
+                for (key in asmbs) {
+                    if (asmbs[key].info.part_TAG == asmbName) {
+                        let parts = asmbs[key].parts
+                        for (let idq = 0; idq < parts.length; idq++) {
+                            let item = parts[idq]
+                            item.proj_ID = project.id
+                            item.proj_TAG = project.info.proj_TAG
+                            item.parent_ID = asmbId
+                            item.parent_TAG = asmbName
+                            inserts.push(item)
+                        }
+                    }
+                }
+            }
+
+        //  Insert parts into selected assembly
             let selcParentId = this.now.id
             let selcParent = this.nodes[selcParentId].name
+
+            for (let idr = 0; idr < asmbs[0].parts.length; idr++) {
+                let item = asmbs[0].parts[idr]
+                item.proj_ID = project.id
+                item.proj_TAG = project.info.proj_TAG
+                item.parent_ID = selcParentId
+                item.parent_TAG = selcParent
+                inserts.push(item)
+            }
+
+            this.insertParts(inserts)
+
+        //  Update assembly ids
+            let updates = []
             for (let idx = 0; idx < result.items.length; idx++) {
                 let part = result.items[idx].part_TAG
                 let partId = result.items[idx]._id
@@ -789,7 +843,6 @@ let Assemblies = {
                 item.set.parent_ID = parentId
                 updates.push(item)
             }
-            console.log(updates)
             this.updateServer(updates)
         } else {
             this.win.message.display('ERROR: Add Assembly save failed!')
@@ -803,16 +856,8 @@ let Assemblies = {
             data: query, dataType: 'json'
         }
         $.ajax(ajaxOBJ).done( (result) => {
-            if (result != null) {
-                console.log(result)
-                let project = ProjectsList.action({
-                    action: 'RETRIEVE_PROJECT',
-                    message: null
-                })
-                ProjectItems.action({
-                    action: 'QUERY_PROJECT_DATA',
-                    message: project.id
-                })
+            if ((result != null) && (result.ok > 0)) {
+                this.reloadProject('update')
             }
             else {
                 this.win.message.display('ERROR: Asemblies Update failed.')
@@ -821,6 +866,22 @@ let Assemblies = {
         .fail( () => {
             this.win.message.display('ERROR: Asemblies AJAX request failed!')
         })
+    },
+
+    reloadProject: function (action) {
+        if (action == 'insert') { this.import.insert = true }
+        if (action == 'update') { this.import.update = true }
+        if ((this.import.insert) && (this.import.update)) {
+            this.import = { insert: false, update: false }
+            let project = ProjectsList.action({
+                action: 'RETRIEVE_PROJECT',
+                message: null
+            })
+            ProjectItems.action({
+                action: 'QUERY_PROJECT_DATA',
+                message: project.id
+            })
+        }
     },
 
     insertNode: function (node) {
@@ -833,6 +894,23 @@ let Assemblies = {
             level: subLevel
         }
         this.win.sidebar.renderNode(parentID, this.view, node, subLevel)
+    },
+
+    insertParts: function (inserts) {
+        let query = { insert: inserts }
+        let ajaxOBJ = {
+            method: 'POST', url: this.query.path,
+            data: query, dataType: 'json'
+        }
+        $.ajax(ajaxOBJ).done( (result) => {
+            if (result.items.length > 0) { this.reloadProject('insert') }
+            else {
+                this.win.message.display('ERROR: Parts Insert failed.')
+            }
+        })
+        .fail( () => {
+            this.win.message.display('ERROR: Parts AJAX request failed!')
+        })
     }
 }
 
