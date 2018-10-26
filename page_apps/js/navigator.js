@@ -219,6 +219,15 @@ let FileImport = Object.create(ModalImport)
         win: { file: FileImport }
     })
 
+let TableExport = Object.create(ModalExport)
+    TableExport.initialize({
+        tableRows: '#export-parts-rows'
+    })
+
+    ExportParts.initialize({
+        win: { table: TableExport }
+    })
+
 /** Dispatch **/
 let Dispatch = function (request) {
     Application.action(request)
@@ -231,4 +240,5 @@ let Dispatch = function (request) {
     Parts.action(request)
     PartsEditor.action(request)
     ImportParts.action(request)
+    ExportParts.action(request)
 }

@@ -221,6 +221,7 @@ let DataGrid = {
         this.bodyID = init.bodyID
         this.findBtn = init.findBtn
         this.find = { active: true }
+        this.filterItems = {}
 
         $(this.findBtn).click( () => {
             if (this.find.active) {
@@ -338,6 +339,7 @@ let DataGrid = {
     },
 
     renderRows: function (id, view, rows, filter, colors, append) {
+        this.filterItems = {}
         let rowAttr = view.attributes
         let columns = view.columns
 
@@ -398,9 +400,16 @@ let DataGrid = {
                     if (!filterExp.test(val)) { filterRowMatch = false }
                 }
             }
-            if (filterRowMatch) { frag.appendChild(row) }
+            if (filterRowMatch) {
+                frag.appendChild(row)
+                this.filterItems[row.id] = null
+            }
         }
         $(id).append(frag)
+    },
+
+    retrieveItems: function () {
+        return this.filterItems
     },
 
     highlightNode: function (nodeID, state) {
@@ -691,6 +700,12 @@ let NavigationBar = {
             event.preventDefault()
             let href = $(event.target).attr('href')
             if (href.indexOf('#') == 0) {
+                if (href == '#modal-export-parts') {
+                    Dispatch({
+                        action: 'DISPLAY_EXPORT_PARTS',
+                        message: null
+                    })
+                }
                 $(href).modal()
             }
         })
@@ -875,5 +890,18 @@ let ModalImport = {
     displaySelected: function (name) {
         $(this.parentHd).empty()
         $(this.parentHd).append(name)
+    }
+}
+
+let ModalExport = {
+
+    initialize: function (init) {
+        this.tableRows = init.tableRows
+    },
+
+    displayRow: function (item) {
+        let html = `<tr><td>${item.mfr_STR}</td><td>${item.part_TAG}</td>`
+          + `<td>${item.total_QTY}</td><td>${item.dscr_STR}</td></tr>`
+        $(this.tableRows).append(html)
     }
 }

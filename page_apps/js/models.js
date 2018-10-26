@@ -975,6 +975,12 @@ let Parts = {
             this.displayFilter(this.items)
             break
 
+        case 'RETRIEVE_FILTERED_ITEMS':
+            return this.retrieveFilteredItems()
+
+        case 'RETRIEVE_PARTS_ITEMS':
+            return this.items
+
         case 'STORE_FILTER_INPUTS':
             this.filter = request.message
             break
@@ -1089,6 +1095,10 @@ let Parts = {
             message: null
         })
         this.win.grid.renderBody(view, items, this.filter, this.colors, false)
+    },
+
+    retrieveFilteredItems: function () {
+        return this.win.grid.retrieveItems()
     },
 
     appendNewItems: function (items) {
@@ -1541,6 +1551,41 @@ let ImportParts = {
             action: 'ADD_NEW_ASSEMBLIES',
             message: this.asmbs
         })
+    }
+}
+
+let ExportParts = {
+
+    initialize: function (init) {
+        this.win = init.win
+    },
+
+    action: function (request) {
+        switch (request.action) {
+
+        case 'DISPLAY_EXPORT_PARTS':
+            this.displayParts()
+            break
+        }
+    },
+
+    displayParts: function () {
+        let items = Parts.action({
+            action: 'RETRIEVE_PARTS_ITEMS',
+            message: null
+        })
+
+        let filterItems = Parts.action({
+            action: 'RETRIEVE_FILTERED_ITEMS',
+            message: null
+        })
+
+        for (let idx = 0; idx < items.length; idx++) {
+            let itemId = items[idx]._id
+            if (itemId in filterItems) {
+                this.win.table.displayRow(items[idx])
+            }
+        }
     }
 }
 

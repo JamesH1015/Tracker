@@ -27,6 +27,9 @@
         <a class="nav-link text-white" href="#modal-icon">Settings</a>
       </li>
       <li class="nav-item">
+        <a class="nav-link text-white" href="#modal-export-parts">Export</a>
+      </li>
+      <li class="nav-item">
         <a class="nav-link text-white" href="#modal-help">Help</a>
       </li>
     </ul>
@@ -44,7 +47,6 @@
         <div class="dropdown-menu dropdown-menu-right">
           <a class="dropdown-item" href="#modal-add-node">Add Assembly</a>
           <a class="dropdown-item" href="#modal-import-parts">Import Parts</a>
-          <a class="dropdown-item" href="#">Export Parts</a>
         </div>
       </div>
       <button id="btn-save" class="btn btn-success mr-sm-2" type="button" disabled>SAVE</button>
@@ -126,6 +128,34 @@
         <p>Tracker is a parts managment system.</p>
         <p>Copyright 2018 James Houck, REI Automation, Inc.<br>
         All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Export Parts -->
+<div class="modal fade" id="modal-export-parts" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-success">
+        <h5 class="modal-title text-light">Export Parts</h5>
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body bg-white text-dark">
+        <table id="export-parts-table" class="table">
+          <thead>
+            <tr>
+              <th scope="col">MFG</th>
+              <th scope="col">PART NUM</th>
+              <th scope="col">QTY</th>
+              <th scope="col">DESCRIPTION</th>
+            </tr>
+          </thead>
+          <tbody id="export-parts-rows">
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
