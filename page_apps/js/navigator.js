@@ -198,7 +198,8 @@ let PartsEdit = Object.create(GridEdit)
         bodyID: '#grid-body',
         insertBtn: '#btn-insert',
         saveBtn: '#btn-save',
-        moreBtn: '#btn-more'
+        moreBtn: '#btn-more',
+        fillBtn: '#btn-status-fill'
     })
 
     PartsEditor.initialize({

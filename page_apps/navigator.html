@@ -47,6 +47,7 @@
         <div class="dropdown-menu dropdown-menu-right">
           <a class="dropdown-item" href="#modal-add-node">Add Assembly</a>
           <a class="dropdown-item" href="#modal-import-parts">Import Parts</a>
+          <a class="dropdown-item" href="#modal-status-fill">Fill Status</a>
         </div>
       </div>
       <button id="btn-save" class="btn btn-success mr-sm-2" type="button" disabled>SAVE</button>
@@ -104,8 +105,6 @@
         </button>
       </div>
       <div class="modal-body bg-white text-dark">
-        <h5>Settings</h5>
-        <p>Use the <strong>gear</strong> menu icon to change page settings.</p>
         <h5>Filter</h5>
         <p>The filter displays rows when it finds a match anywhere in the column text. Use the <strong>^</strong> character at the beginning of the filter input to find an exact match.</p>
       </div>
@@ -144,6 +143,14 @@
         </button>
       </div>
       <div class="modal-body bg-white text-dark">
+        <form class="form">
+          <div class="form-group mt-3">
+            <label for="select-export-schema">Select export schema.</label>
+            <select class="form-control" id="select-export-schema">
+                <option>Purchasing</option>
+            </select>
+          </div>
+        </form>
         <table id="export-parts-table" class="table">
           <thead>
             <tr>
@@ -241,6 +248,24 @@
           <div id="import-parts-file-alert" class="text-danger"></div>
           <button id="import-parts-load" class="btn btn-success mt-3" type="button">LOAD</button>
         </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Status Fill -->
+<div class="modal fade" id="modal-status-fill" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-success">
+        <h5 class="modal-title text-light">Fill Status</h5>
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body bg-white text-dark">
+        <p>Fill blank status column with "order".</p>
+        <button id="btn-status-fill" class="btn btn-success mt-3" type="button"disabled>Fill</button>
       </div>
     </div>
   </div>

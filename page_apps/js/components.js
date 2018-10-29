@@ -470,6 +470,7 @@ let GridEdit = {
         this.insertBtn = init.insertBtn
         this.saveBtn = init.saveBtn
         this.moreBtn = init.moreBtn
+        this.fillBtn = init.fillBtn
 
         this.item = { id: '', field: '', type: '', text: '' }
         this.input = { text:'', active: false }
@@ -477,7 +478,7 @@ let GridEdit = {
         this.insert = { active: false }
         this.edit = {}
 
-        this.activateButtons(this.insertBtn, this.saveBtn)
+        this.activateButtons(this.insertBtn, this.saveBtn, this.fillBtn)
         this.activateGrid(this.bodyID)
     },
 
@@ -567,7 +568,7 @@ let GridEdit = {
         return test
     },
 
-    activateButtons: function (insertID, saveID) {
+    activateButtons: function (insertID, saveID, fillID) {
         $(insertID).click( () => {
             if (this.insert.active) {
                 Dispatch({
@@ -584,6 +585,12 @@ let GridEdit = {
                     message: null
                 })
             }
+        })
+        $(fillID).click( () => {
+            Dispatch({
+                action: 'FILL_STATUS',
+                message: null
+            })
         })
     },
 
@@ -897,6 +904,10 @@ let ModalExport = {
 
     initialize: function (init) {
         this.tableRows = init.tableRows
+    },
+
+    clearRows: function () {
+        $(this.tableRows).empty()
     },
 
     displayRow: function (item) {

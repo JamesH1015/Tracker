@@ -1198,6 +1198,10 @@ let PartsEditor = {
             this.applyRule(request.message.id, request.message.field, this.edits)
             break
 
+        case 'FILL_STATUS':
+            this.fillStatus()
+            break
+
         case 'RESET':
             this.insertActive = request.message.insert
             if (this.insertActive) { this.win.edit.enableInsert() }
@@ -1257,6 +1261,10 @@ let PartsEditor = {
             this.active = true
             this.win.edit.enableSave()
         }
+    },
+
+    fillStatus: function () {
+        console.log('Fill Status')
     },
 
     saveEdits: function (edits) {
@@ -1579,6 +1587,8 @@ let ExportParts = {
             action: 'RETRIEVE_FILTERED_ITEMS',
             message: null
         })
+
+        this.win.table.clearRows()
 
         for (let idx = 0; idx < items.length; idx++) {
             let itemId = items[idx]._id
