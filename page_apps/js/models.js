@@ -296,6 +296,7 @@ let ProjectsQuery = {
     },
 
     updateProjectItems: function (items) {
+        console.log(this.projects)
         for (let idx = 0; idx < items.length; idx++) {
             let set = items[idx].set
             for (key in set) {
@@ -940,6 +941,9 @@ let Parts = {
             })
             break
 
+        case 'RETRIEVE_COLORS':
+            return this.colors
+
         case 'DISPLAY_SELECTED_NODE_ITEMS':
             this.filterActive = true
             this.displayNodeState(request.message)
@@ -1375,7 +1379,12 @@ let PartsEditor = {
                 message: this.updates
             })
             this.saveActive.update = false
-            this.win.edit.removeBackground(this.updates)
+
+            let colors = Parts.action({
+                action: 'RETRIEVE_COLORS',
+                message: null
+            })
+            this.win.edit.removeBackground(this.updates, colors)
         } else {
             this.win.message.display('ERROR: Parts Editor save failed!')
         }

@@ -574,7 +574,7 @@ let GridEdit = {
         return test
     },
 
-    removeBackground: function (items) {
+    removeBackground: function (items, colors) {
         for (let idx = 0; idx < items.length; idx++) {
             let id = items[idx]._id
             let set = items[idx].set
@@ -584,6 +584,14 @@ let GridEdit = {
                 if (bkgdColor != '#FF0000') {
                     $(`#${id} > div[data-field="${key}"]`)
                     .css({ 'background-color': '', 'color': '' })
+                }
+
+            //  Set Background Color
+                if ((colors.active) && (key == 'status_STR')) {
+                    if (colors.schema.hasOwnProperty(set[key])) {
+                        rowBkgd = colors.schema[set[key]]
+                        $(`#${id}`).css({ 'background-color': rowBkgd })
+                    }
                 }
             }
         }
@@ -670,8 +678,9 @@ let GridEdit = {
             var regExp3 = /^(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])-(?:[0-9]{2})?[0-9]{2}$/;
             var regExp4 = /^(1[0-2]|0?[1-9])\/(3[01]|[12][0-9]|0?[1-9])\/(?:[0-9]{2})?[0-9]{2}$/;
             let test3 = (regExp3.test(data)) || (regExp4.test(data))
-            if (test3) { return { valid: test3, value: data } }
-            else { return { valid: test3, value: null } }
+            if ((test3) || (data == '')) {
+                return { valid: test3, value: data }
+            } else { return { valid: test3, value: null } }
             break
         }
     }
