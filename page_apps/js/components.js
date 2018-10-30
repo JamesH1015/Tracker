@@ -352,6 +352,8 @@ let DataGrid = {
         //  Create row
             let row = document.createElement('div')
             row.id = rows[idx][rowAttr.id]
+            row.setAttribute('data-parent', rows[idx].parent_ID)
+            row.setAttribute('data-project', rows[idx].proj_ID)
             row.className = 'row grid-row border border-top-0'
 
         //  Set Background Color
@@ -378,8 +380,6 @@ let DataGrid = {
                 col.className = `col-${colAttr.width} data`
                 col.setAttribute('data-field', colAttr.field)
                 col.setAttribute('data-type', colAttr.dtype)
-                col.setAttribute('data-parent', rows[idx].parent_ID)
-                col.setAttribute('data-project', rows[idx].proj_ID)
                 let applyEdit = true
                 if (colAttr.rule != null) {
                     applyEdit = false
@@ -492,8 +492,8 @@ let GridEdit = {
             this.item.id = $(event.target).parent().attr('id')
             this.item.field = $(event.target).attr('data-field')
             this.item.type = $(event.target).attr('data-type')
-            this.item.parent = $(event.target).attr('data-parent')
-            this.item.project = $(event.target).attr('data-project')
+            this.item.parent = $(event.target).parent().attr('data-parent')
+            this.item.project = $(event.target).parent().attr('data-project')
             this.item.text = $(event.target).text()
             this.input = { text:'', active: false }
             this.edit = {}
@@ -537,6 +537,10 @@ let GridEdit = {
 
     retrieveValue: function (id, field) {
         return $(`#${id} > div[data-field="${field}"]`).text()
+    },
+
+    retrieveAttrValue: function (id, field) {
+        return $(`#${id}`).attr(`data-${field}`)
     },
 
     testInput: function () {

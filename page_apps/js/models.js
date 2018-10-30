@@ -296,8 +296,6 @@ let ProjectsQuery = {
     },
 
     updateProjectItems: function (items) {
-        console.log(this.projects)
-        console.log(items)
         for (let idx = 0; idx < items.length; idx++) {
             let set = items[idx].set
             for (key in set) {
@@ -1443,12 +1441,16 @@ let PartsEditor = {
                 }
                 let func = new Function('ops', rule[idz].function)
                 let result = func(operands)
+                let parent = this.win.edit.retrieveAttrValue(id, 'parent')
+                let project = this.win.edit.retrieveAttrValue(id, 'project')
                 if (result != null) {
                     this.win.edit.setValue(id, rule[idz].result, result)
                     this.edits.push({
                         id: id,
                         field: rule[idz].result,
-                        value: result
+                        value: result,
+                        parent: parent,
+                        project: project
                     })
                 }
             }
