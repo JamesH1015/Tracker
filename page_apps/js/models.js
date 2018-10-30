@@ -297,6 +297,7 @@ let ProjectsQuery = {
 
     updateProjectItems: function (items) {
         console.log(this.projects)
+        console.log(items)
         for (let idx = 0; idx < items.length; idx++) {
             let set = items[idx].set
             for (key in set) {

@@ -678,9 +678,10 @@ let GridEdit = {
             var regExp3 = /^(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])-(?:[0-9]{2})?[0-9]{2}$/;
             var regExp4 = /^(1[0-2]|0?[1-9])\/(3[01]|[12][0-9]|0?[1-9])\/(?:[0-9]{2})?[0-9]{2}$/;
             let test3 = (regExp3.test(data)) || (regExp4.test(data))
+            console.log(test3, data)
             if ((test3) || (data == '')) {
-                return { valid: test3, value: data }
-            } else { return { valid: test3, value: null } }
+                return { valid: true, value: data }
+            } else { return { valid: false, value: null } }
             break
         }
     }
