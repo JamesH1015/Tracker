@@ -299,15 +299,15 @@ let ProjectsQuery = {
         for (let idx = 0; idx < items.length; idx++) {
             let set = items[idx].set
             for (key in set) {
-                let projARY = this.projects[this.projectID]
+                let projARY = this.projects[items[idx].project]
                 for (let idy = 0; idy < projARY.length; idy++) {
                     if (items[idx]._id == projARY[idy]._id) {
-                        this.projects[this.projectID][idy][key] = set[key]
+                        this.projects[items[idx].project][idy][key] = set[key]
                     }
                 }
             }
         }
-        return this.projectID
+        return true
     },
 
     displayProjects: function () {
@@ -471,23 +471,19 @@ let ProjectItems = {
     },
 
     updateNodeLeafs: function (updates) {
-        let parent = Assemblies.action({
-            action: 'RETRIEVE_PARENT',
-            message:  null
-        })
         for (let idx = 0; idx < updates.length; idx++) {
             let id = updates[idx][this.view.id]
             let set = updates[idx].set
-            let leafs = this.ancestors[parent.id].leafs
+            let leafs = this.ancestors[updates[idx].parent].leafs
             for (let idy = 0; idy < leafs.length; idy++) {
                 if (leafs[idy][this.view.id] == id) {
                     for (key in set) {
-                        this.ancestors[parent.id].leafs[idy][key] = set[key]
+                        this.ancestors[updates[idx].parent].leafs[idy][key] = set[key]
                     }
                 }
             }
         }
-        return parent.id
+        return true
     },
 
     insertNodeLeafs: function (inserts) {
@@ -1276,6 +1272,8 @@ let PartsEditor = {
             let value = edits[idx].value
             let type = edits[idx].type
             let text = edits[idx].text
+            let parent = edits[idx].parent
+            let project = edits[idx].project
             let idARY = id.split('-')
             if (idARY[0] == 'insert') {
                 let idno = idARY[1]
@@ -1284,7 +1282,9 @@ let PartsEditor = {
                 }
                 this.inserts[idno][field] = value
             } else {
-                let updateItem = { _id: id, set: {} }
+                let updateItem = {
+                    _id: id, parent: parent, project: project, set: {}
+                }
                 updateItem.set[field] = value
                 this.updates.push(updateItem)
             }
@@ -1375,14 +1375,7 @@ let PartsEditor = {
                 message: this.updates
             })
             this.saveActive.update = false
-            if (parentID != null) {
-                this.displaySavedItems(parentID)
-            } else if (projectID != null) {
-                Parts.action({
-                    action: 'DISPLAY_SELECTED_PROJECT_ITEMS',
-                    message: projectID
-                })
-            }
+            this.win.edit.removeBackground(this.updates)
         } else {
             this.win.message.display('ERROR: Parts Editor save failed!')
         }

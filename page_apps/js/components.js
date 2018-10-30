@@ -378,6 +378,8 @@ let DataGrid = {
                 col.className = `col-${colAttr.width} data`
                 col.setAttribute('data-field', colAttr.field)
                 col.setAttribute('data-type', colAttr.dtype)
+                col.setAttribute('data-parent', rows[idx].parent_ID)
+                col.setAttribute('data-project', rows[idx].proj_ID)
                 let applyEdit = true
                 if (colAttr.rule != null) {
                     applyEdit = false
@@ -490,6 +492,8 @@ let GridEdit = {
             this.item.id = $(event.target).parent().attr('id')
             this.item.field = $(event.target).attr('data-field')
             this.item.type = $(event.target).attr('data-type')
+            this.item.parent = $(event.target).attr('data-parent')
+            this.item.project = $(event.target).attr('data-project')
             this.item.text = $(event.target).text()
             this.input = { text:'', active: false }
             this.edit = {}
@@ -505,6 +509,8 @@ let GridEdit = {
                 this.edit.field = this.item.field
                 this.edit.type = this.item.type
                 this.edit.text = this.item.text
+                this.edit.parent = this.item.parent
+                this.edit.project = this.item.project
                 this.input.active = true
                 this.enableSave()
             }
@@ -566,6 +572,21 @@ let GridEdit = {
             .css({ 'background-color': '#FF0000', 'color': '#000000' })
         }
         return test
+    },
+
+    removeBackground: function (items) {
+        for (let idx = 0; idx < items.length; idx++) {
+            let id = items[idx]._id
+            let set = items[idx].set
+            for (key in set) {
+                let bkgdColor = $(`#${id} > div[data-field="${key}"]`)
+                .css('background-color')
+                if (bkgdColor != '#FF0000') {
+                    $(`#${id} > div[data-field="${key}"]`)
+                    .css({ 'background-color': '', 'color': '' })
+                }
+            }
+        }
     },
 
     activateButtons: function (insertID, saveID, fillID) {
