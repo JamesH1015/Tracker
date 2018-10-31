@@ -224,6 +224,11 @@
           "operands": [ "partPO_STR" ],
           "function": "let ts = new Date();let month = (ts.getMonth() + 1).toString();let date = (ts.getDate()).toString();let year = (ts.getFullYear()).toString();return dateSTR = month + '-' + date + '-' + year",
           "result": "order_TS"
+        },
+        {
+          "operands": [ "partPO_STR" ],
+          "function": "if (ops[0] != '') { return 'on order' } else { return '' }",
+          "result": "status_STR"
         }]
     }},
     { "name":"Surface", "attributes": { "id": "_id" }, "columns": [
