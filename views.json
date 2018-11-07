@@ -416,23 +416,6 @@
     "rules": {}}
   ],
   "machineshop": [
-    { "name":"Parts", "attributes": { "id": "_id" }, "columns": [
-      { "title": "Part Num", "width": "2", "field": "part_TAG",
-        "dtype": "string", "edit": false, "rule": ["","edit"] },
-      { "title": "Description", "width": "3", "field": "dscr_STR",
-        "dtype": "string", "edit": false, "rule": ["","edit"] },
-      { "title": "Mfr", "width": "1", "field": "mfr_STR",
-        "dtype": "string", "edit": false, "rule": ["","edit"] },
-      { "title": "Qty", "width": "1", "field": "total_QTY",
-        "dtype": "number", "edit": false, "rule": ["","edit"] },
-      { "title": "Vendor", "width": "2", "field": "vendor_STR",
-        "dtype": "string", "edit": false, "rule": ["","edit"] },
-      { "title": "Note", "width": "2", "field": "note_STR",
-        "dtype": "string", "edit": true, "rule": null },
-      { "title": "Status", "width": "1", "field": "status_STR",
-        "dtype": "string", "edit": true, "rule": ["","edit"] }
-    ],
-    "rules": {}},
     { "name":"Shop", "attributes": { "id": "_id" }, "columns": [
       { "title": "Part Num", "width": "2", "field": "part_TAG",
         "dtype": "string", "edit": false, "rule": ["","edit"] },
@@ -481,6 +464,23 @@
         "dtype": "date", "edit": true, "rule": null },
       { "title": "Status", "width": "1", "field": "status_STR",
         "dtype": "string", "edit": true, "rule": null }
+    ],
+    "rules": {}},
+    { "name":"Parts", "attributes": { "id": "_id" }, "columns": [
+      { "title": "Part Num", "width": "2", "field": "part_TAG",
+        "dtype": "string", "edit": false, "rule": ["","edit"] },
+      { "title": "Description", "width": "3", "field": "dscr_STR",
+        "dtype": "string", "edit": false, "rule": ["","edit"] },
+      { "title": "Mfr", "width": "1", "field": "mfr_STR",
+        "dtype": "string", "edit": false, "rule": ["","edit"] },
+      { "title": "Qty", "width": "1", "field": "total_QTY",
+        "dtype": "number", "edit": false, "rule": ["","edit"] },
+      { "title": "Vendor", "width": "2", "field": "vendor_STR",
+        "dtype": "string", "edit": false, "rule": ["","edit"] },
+      { "title": "Note", "width": "2", "field": "note_STR",
+        "dtype": "string", "edit": true, "rule": null },
+      { "title": "Status", "width": "1", "field": "status_STR",
+        "dtype": "string", "edit": true, "rule": ["","edit"] }
     ],
     "rules": {}}
   ]
