@@ -1549,6 +1549,7 @@ let ImportParts = {
             prevItem = item
             prevIndex = index
             prevIndexLEN = indexLEN
+            let prevIndexARY = index.split('.')
             if (idy == data.length - 1) {
                 let indexARY = index.split('.')
                 let asmbIndex = indexARY[0]
