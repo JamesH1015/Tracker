@@ -123,6 +123,11 @@
         res.json(colors[req.query.find.schema])
     })
 
+//  Serve Manager Application
+    ws.get('/manager', function (req, res) {
+        res.sendFile(__dirname + conf.apps + '/manager.html')
+    })
+
 //  GET Resource
     ws.get('/:appl/:coll', function (req, res) {
         let api = {
