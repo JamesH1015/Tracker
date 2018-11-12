@@ -26,12 +26,12 @@
   "sufOut_QTY": "number",
   "surfOut_TS": "date",
   "surfIn_QTY": "number",
-  "surfOut_TS": "date",
+  "surfIn_TS": "date",
   "matrSize_STR": "string",
   "matrVend_STR": "string",
   "matrPO_STR": "string",
   "matrOut_QTY": "number",
   "matrOut_TS": "date",
   "matrIn_QTY": "number",
-  "matrOut_TS": "date"
+  "matrIn_TS": "date"
 }

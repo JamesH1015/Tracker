@@ -61,7 +61,7 @@
         "dtype": "date", "edit": false, "rule": null },
       { "title": "S.Qty Rec", "width": "1", "field": "surfIn_QTY",
         "dtype": "number", "edit": false, "rule": null },
-      { "title": "S.Date Rec", "width": "1", "field": "surfOut_TS",
+      { "title": "S.Date Rec", "width": "1", "field": "surfIn_TS",
         "dtype": "date", "edit": false, "rule": null },
       { "title": "Status", "width": "1", "field": "status_STR",
         "dtype": "string", "edit": false, "rule": null }
@@ -86,7 +86,7 @@
         "dtype": "date", "edit": false, "rule": null },
       { "title": "M.Qty Rec", "width": "1", "field": "matrIn_QTY",
         "dtype": "number", "edit": false, "rule": null },
-      { "title": "M.Date Rec", "width": "1", "field": "matrOut_TS",
+      { "title": "M.Date Rec", "width": "1", "field": "matrIn_TS",
         "dtype": "date", "edit": false, "rule": null },
       { "title": "Status", "width": "1", "field": "status_STR",
         "dtype": "string", "edit": false, "rule": null }
@@ -250,7 +250,7 @@
         "dtype": "date", "edit": true, "rule": null },
       { "title": "S.Qty Rec", "width": "1", "field": "surfIn_QTY",
         "dtype": "number", "edit": true, "rule": null },
-      { "title": "S.Date Rec", "width": "1", "field": "surfOut_TS",
+      { "title": "S.Date Rec", "width": "1", "field": "surfIn_TS",
         "dtype": "date", "edit": true, "rule": null },
       { "title": "Status", "width": "1", "field": "status_STR",
         "dtype": "string", "edit": true, "rule": null }
@@ -275,7 +275,7 @@
         "dtype": "date", "edit": true, "rule": null },
       { "title": "M.Qty Rec", "width": "1", "field": "matrIn_QTY",
         "dtype": "number", "edit": true, "rule": null },
-      { "title": "M.Date Rec", "width": "1", "field": "matrOut_TS",
+      { "title": "M.Date Rec", "width": "1", "field": "matrIn_TS",
         "dtype": "date", "edit": true, "rule": null },
       { "title": "Status", "width": "1", "field": "status_STR",
         "dtype": "string", "edit": true, "rule": null }
@@ -383,7 +383,7 @@
         "dtype": "date", "edit": true, "rule": null },
       { "title": "S.Qty Rec", "width": "1", "field": "surfIn_QTY",
         "dtype": "number", "edit": true, "rule": null },
-      { "title": "S.Date Rec", "width": "1", "field": "surfOut_TS",
+      { "title": "S.Date Rec", "width": "1", "field": "surfIn_TS",
         "dtype": "date", "edit": true, "rule": null },
       { "title": "Status", "width": "1", "field": "status_STR",
         "dtype": "string", "edit": true, "rule": null }
@@ -408,7 +408,7 @@
         "dtype": "date", "edit": true, "rule": null },
       { "title": "M.Qty Rec", "width": "1", "field": "matrIn_QTY",
         "dtype": "number", "edit": true, "rule": null },
-      { "title": "M.Date Rec", "width": "1", "field": "matrOut_TS",
+      { "title": "M.Date Rec", "width": "1", "field": "matrIn_TS",
         "dtype": "date", "edit": true, "rule": null },
       { "title": "Status", "width": "1", "field": "status_STR",
         "dtype": "string", "edit": true, "rule": null }
@@ -460,7 +460,7 @@
         "dtype": "date", "edit": true, "rule": null },
       { "title": "M.Qty Rec", "width": "1", "field": "matrIn_QTY",
         "dtype": "number", "edit": true, "rule": null },
-      { "title": "M.Date Rec", "width": "1", "field": "matrOut_TS",
+      { "title": "M.Date Rec", "width": "1", "field": "matrIn_TS",
         "dtype": "date", "edit": true, "rule": null },
       { "title": "Status", "width": "1", "field": "status_STR",
         "dtype": "string", "edit": true, "rule": null }
