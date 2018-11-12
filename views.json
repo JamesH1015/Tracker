@@ -480,7 +480,7 @@
       { "title": "Note", "width": "2", "field": "note_STR",
         "dtype": "string", "edit": true, "rule": null },
       { "title": "Status", "width": "1", "field": "status_STR",
-        "dtype": "string", "edit": true, "rule": ["","edit"] }
+        "dtype": "string", "edit": true, "rule": null }
     ],
     "rules": {}},
     { "name":"Log", "attributes": { "id": "_id" }, "columns": [
