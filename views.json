@@ -360,7 +360,7 @@
       },
       {
         "operands": [ "rec_QTY", "total_QTY" ],
-        "function": "if (ops[0] >= ops[1]) { return 'complete' } else { return null }",
+        "function": "if (ops[0] >= ops[1]) { return 'complete' } else { return 'incomplete' }",
         "result": "status_STR"
       }]
     }},
