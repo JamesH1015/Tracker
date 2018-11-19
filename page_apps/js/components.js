@@ -665,24 +665,23 @@ let GridEdit = {
         case 'number':
             let regExp1 = /^[-+]?\d+(\.\d+)?$/
             let test1 = regExp1.test(data)
-            if (test1) {
+            if ((test1) || (data == '')) {
                 let newData = parseFloat(data.replace(/,/g, ''))
-                return { valid: test1, value: newData }
-            } else { return { valid: test1, value: null } }
+                return { valid: true, value: newData }
+            } else { return { valid: false, value: null } }
             break
         case 'currency':
             let regExp2 = /^[-+]?[0-9]{1,3}(?:,?[0-9]{3})*\.?[0-9]+$/
             let test2 = regExp2.test(data)
-            if (test2) {
+            if ((test2) || (data == '')) {
                 let newData = parseFloat(data.replace(/,/g, '')).toFixed(4)
-                return { valid: test2, value: newData }
-            } else { return { valid: test2, value: null } }
+                return { valid: true, value: newData }
+            } else { return { valid: false, value: null } }
             break
         case 'date':
             var regExp3 = /^(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])-(?:[0-9]{2})?[0-9]{2}$/;
             var regExp4 = /^(1[0-2]|0?[1-9])\/(3[01]|[12][0-9]|0?[1-9])\/(?:[0-9]{2})?[0-9]{2}$/;
             let test3 = (regExp3.test(data)) || (regExp4.test(data))
-            console.log(test3, data)
             if ((test3) || (data == '')) {
                 return { valid: true, value: data }
             } else { return { valid: false, value: null } }
