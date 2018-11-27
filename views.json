@@ -265,7 +265,26 @@
       { "title": "Status", "width": "1", "field": "status_STR",
         "dtype": "string", "edit": true, "rule": null }
     ],
-    "rules": {}},
+    "rules": {
+      "sufOut_QTY": [
+        {
+          "operands": [ "sufOut_QTY" ],
+          "function": "let ts = new Date();let month = (ts.getMonth() + 1).toString();let date = (ts.getDate()).toString();let year = (ts.getFullYear()).toString();return dateSTR = month + '-' + date + '-' + year",
+          "result": "surfOut_TS"
+        }
+      ],
+      "surfIn_QTY": [
+        {
+          "operands": [ "surfIn_QTY" ],
+          "function": "let ts = new Date();let month = (ts.getMonth() + 1).toString();let date = (ts.getDate()).toString();let year = (ts.getFullYear()).toString();return dateSTR = month + '-' + date + '-' + year",
+          "result": "surfIn_TS"
+        },
+        {
+          "operands": [ "surfIn_QTY", "sufOut_QTY" ],
+          "function": "if (ops[0] >= ops[1]) { return 'complete' } else { return 'incomplete' }",
+          "result": "status_STR"
+        }]
+      }},
     { "name":"Material", "collection": "parts",
       "attributes": { "id": "_id" }, "columns": [
       { "title": "Part Num", "width": "1", "field": "part_TAG",
@@ -415,7 +434,26 @@
       { "title": "Status", "width": "1", "field": "status_STR",
         "dtype": "string", "edit": true, "rule": null }
     ],
-    "rules": {}},
+    "rules": {
+      "sufOut_QTY": [
+        {
+          "operands": [ "sufOut_QTY" ],
+          "function": "let ts = new Date();let month = (ts.getMonth() + 1).toString();let date = (ts.getDate()).toString();let year = (ts.getFullYear()).toString();return dateSTR = month + '-' + date + '-' + year",
+          "result": "surfOut_TS"
+        }
+      ],
+      "surfIn_QTY": [
+        {
+          "operands": [ "surfIn_QTY" ],
+          "function": "let ts = new Date();let month = (ts.getMonth() + 1).toString();let date = (ts.getDate()).toString();let year = (ts.getFullYear()).toString();return dateSTR = month + '-' + date + '-' + year",
+          "result": "surfIn_TS"
+        },
+        {
+          "operands": [ "surfIn_QTY", "sufOut_QTY" ],
+          "function": "if (ops[0] >= ops[1]) { return 'complete' } else { return 'incomplete' }",
+          "result": "status_STR"
+        }]
+      }},
     { "name":"Material", "collection": "parts",
       "attributes": { "id": "_id" }, "columns": [
       { "title": "Part Num", "width": "1", "field": "part_TAG",
