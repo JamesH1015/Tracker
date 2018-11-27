@@ -225,7 +225,7 @@
       "unitPrice_CUR": [
         {
           "operands": [ "total_QTY", "unitPrice_CUR" ],
-          "function": "return ops[0] * ops[1]",
+          "function": "let num = Math.round(ops[0] * ops[1] * 100) / 100; return num.toFixed(2)",
           "result": "totalPrice_CUR"
         }],
       "partPO_STR": [
