@@ -488,8 +488,6 @@
         "dtype": "string", "edit": false, "rule": null },
       { "title": "Description", "width": "2", "field": "dscr_STR",
         "dtype": "string", "edit": false, "rule": null },
-      { "title": "Mfr", "width": "1", "field": "mfr_STR",
-        "dtype": "string", "edit": false, "rule": null },
       { "title": "Vendor", "width": "1", "field": "vendor_STR",
         "dtype": "string", "edit": true, "rule": null },
       { "title": "Qty", "width": "1", "field": "total_QTY",
@@ -502,10 +500,24 @@
         "dtype": "number", "edit": true, "rule": null },
       { "title": "Date Cmpl", "width": "1", "field": "rec_TS",
         "dtype": "date", "edit": true, "rule": null },
+      { "title": "Note", "width": "1", "field": "note_STR",
+        "dtype": "string", "edit": true, "rule": null },
       { "title": "Status", "width": "1", "field": "status_STR",
         "dtype": "string", "edit": true, "rule": null }
     ],
-    "rules": {}},
+    "rules": {
+      "vendor_STR": [
+        {
+          "operands": [ "vendor_STR" ],
+          "function": "if (ops[0] == 'rei') { let ts = new Date();let month = (ts.getMonth() + 1).toString(); let date = (ts.getDate()).toString(); let year = (ts.getFullYear()).toString(); return dateSTR = month + '-' + date + '-' + year }",
+          "result": "order_TS"
+        },
+        {
+          "operands": [ "vendor_STR" ],
+          "function": "if (ops[0] == 'rei') { return 'on order'}",
+          "result": "status_STR"
+        }]
+      }},
     { "name":"Material", "collection": "parts",
       "attributes": { "id": "_id" }, "columns": [
       { "title": "Part Num", "width": "1", "field": "part_TAG",
@@ -530,24 +542,6 @@
         "dtype": "number", "edit": true, "rule": null },
       { "title": "M.Date Rec", "width": "1", "field": "matrIn_TS",
         "dtype": "date", "edit": true, "rule": null },
-      { "title": "Status", "width": "1", "field": "status_STR",
-        "dtype": "string", "edit": true, "rule": null }
-    ],
-    "rules": {}},
-    { "name":"Parts", "collection": "parts",
-      "attributes": { "id": "_id" }, "columns": [
-      { "title": "Part Num", "width": "2", "field": "part_TAG",
-        "dtype": "string", "edit": false, "rule": null },
-      { "title": "Description", "width": "3", "field": "dscr_STR",
-        "dtype": "string", "edit": false, "rule": null },
-      { "title": "Mfr", "width": "1", "field": "mfr_STR",
-        "dtype": "string", "edit": false, "rule": null },
-      { "title": "Qty", "width": "1", "field": "total_QTY",
-        "dtype": "number", "edit": false, "rule": null },
-      { "title": "Vendor", "width": "2", "field": "vendor_STR",
-        "dtype": "string", "edit": true, "rule": null },
-      { "title": "Note", "width": "2", "field": "note_STR",
-        "dtype": "string", "edit": true, "rule": null },
       { "title": "Status", "width": "1", "field": "status_STR",
         "dtype": "string", "edit": true, "rule": null }
     ],
