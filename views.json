@@ -375,7 +375,7 @@
         "dtype": "string", "edit": false, "rule": null },
       { "title": "Description", "width": "1", "field": "dscr_STR",
         "dtype": "string", "edit": false, "rule": null },
-      { "title": "Mfr", "width": "1", "field": "mfr_STR",
+      { "title": "Surface", "width": "1", "field": "surfType_STR",
         "dtype": "string", "edit": false, "rule": null },
       { "title": "Vendor", "width": "1", "field": "vendor_STR",
         "dtype": "string", "edit": false, "rule": null },
@@ -404,8 +404,8 @@
           "result": "rec_TS"
       },
       {
-        "operands": [ "rec_QTY", "total_QTY" ],
-        "function": "if (ops[0] >= ops[1]) { return 'complete' } else { return 'incomplete' }",
+        "operands": [ "rec_QTY", "total_QTY", "surfType_STR" ],
+        "function": "if (ops[0] >= ops[1]) { console.log(ops[2]); if ((ops[2] == 'None') || (ops[2] == 'none') || (ops[2] == '')) { return 'complete' } else { return 'surface' }} else { return 'incomplete' }",
         "result": "status_STR"
       }]
     }},
@@ -537,19 +537,19 @@
     { "name":"Parts", "collection": "parts",
       "attributes": { "id": "_id" }, "columns": [
       { "title": "Part Num", "width": "2", "field": "part_TAG",
-        "dtype": "string", "edit": true, "rule": ["","edit"] },
+        "dtype": "string", "edit": false, "rule": null },
       { "title": "Description", "width": "3", "field": "dscr_STR",
-        "dtype": "string", "edit": true, "rule": ["","edit"] },
+        "dtype": "string", "edit": false, "rule": null },
       { "title": "Mfr", "width": "1", "field": "mfr_STR",
-        "dtype": "string", "edit": true, "rule": ["","edit"] },
+        "dtype": "string", "edit": false, "rule": null },
       { "title": "Qty", "width": "1", "field": "total_QTY",
-        "dtype": "number", "edit": true, "rule": ["","edit"] },
+        "dtype": "number", "edit": false, "rule": null },
       { "title": "Vendor", "width": "2", "field": "vendor_STR",
-        "dtype": "string", "edit": true, "rule": ["","edit"] },
+        "dtype": "string", "edit": true, "rule": null },
       { "title": "Note", "width": "2", "field": "note_STR",
         "dtype": "string", "edit": true, "rule": null },
       { "title": "Status", "width": "1", "field": "status_STR",
-        "dtype": "string", "edit": true, "rule": ["","edit"] }
+        "dtype": "string", "edit": true, "rule": null }
     ],
     "rules": {}},
     { "name":"Log", "collection": "shoptimes",
